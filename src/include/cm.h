@@ -30,9 +30,7 @@ namespace cmdv {
 			//Functions
 			//Compart base functions
 			Compart(){
-				vals = new rnarep::CellContent; //creating place for cell content values
-
-				no_met_neigh = no_repl_neigh = no_diff_neigh = 0; //no inic
+				parent = NULL;
 			}
 
 			~Compart(){
@@ -40,7 +38,7 @@ namespace cmdv {
 					delete [] (claims);
 				}
 
-				delete vals;
+				//delete reps;
 			}
 
 			//calculate metabolism around replicator
@@ -49,8 +47,8 @@ namespace cmdv {
 			//an update step on this cell
 			void update();
 
-			//give birth to another compartment
-			int birth();
+			//split to two compartments
+			int split();
 
 		private:
 			double metablism;
@@ -62,9 +60,9 @@ namespace cmdv {
 		public:
 			int size;
 			int time;
-			cadv::Ca_layout layout;
-			
-			Compart *matrix;
+			int no_replicators;
+
+			Compart *comparts;
 			
 			std::string savedir;
 
@@ -76,44 +74,21 @@ namespace cmdv {
 			int grid_init() ;
 
 			//Constructor 1
-			CompartAut(int size1=300, int size2=300, cadv::Ca_layout layout_type=square){
+			CompartAut(int _size=300): size(_size){
 				time=0;
-				diff = 0;
 				//saving_freq = 0;
-				nrow=size1;
-				ncol=size2;
-				layout = layout_type;
 
-				rnarep::CellContent::no_replicators = 0;
+				comparts = new class Compart [size];
 
-				grid_init();
+				no_replicators = 0;
 
-				if(!size) layout = empty;
-				if(size1==1 || size2==1){
-					if(size1==size2) {
-						layout = single;
-					}
-					else {
-						layout = line;
-					}
-				}
-
-				
 //				std::cout << "Basic Constructor Called" << std::endl;
 			}
 			
-			//Constructor 2
-			CompartPool(int size1, int size2, cadv::Ca_layout layout_type, Compart* pool, double* probs, int no_choices){
-				CompartPool(size1, size2, layout_type);
-				//init(pool, probs, no_choices);
-			}
 			
 			//Deconstructor
 			~CompartPool(){
-				if(size) delete [] (matrix);
-				//for(int i =0; i < neighbourhoods.size(); i++) {
-				//	delete [] (neighbourhoods.at(i));
-				//}
+				if(size) delete [] (comparts);
 //				std::cout << "Deconstructor Called" << std::endl;
 			}
 			
@@ -121,16 +96,21 @@ namespace cmdv {
 			
 			//Functions
 			
-			///gives back pointer to random cell
-			inline Compart* rget(int cell) {
-				return(matrix + cell);
+			///gives back pointer to nth comp
+			inline Compart* get(int cell) {
+				return(comparts + cell);
+			}
+
+			///gives back pointer to random comp
+			inline Compart* get() {
+				return(comparts + gsl_rng_uniform_int(r, size) );
 			}
 			
 			///initialises matrix with predefined values, randomly
-			void init(std::string* pool, double* probs, int no_choices); 
+			//void init(std::string* pool, double* probs, int no_choices); 
 			
 			///initialises matrix from textfile
-			void init_fromfile(char * infile); 
+			//void init_fromfile(char * infile); 
 			
 			//Updates
 
@@ -144,12 +124,18 @@ namespace cmdv {
 			int oUpdate(int gens);
 
 			// Outputs
-			// return values: 0 (OK), 1 (could not find a new directory, most likely more than one simulations run with the same ID and seed), 2 (cant open output file)
+			// return values: 
+			// 0 (OK), 
+			// 1 (could not find a new directory, most likely more than one simulations run with the same ID and seed), 
+			// 2 (cant open output file)
+			
 			int openOutputs();
 
 			void do_output();
 
-			// return values: 0 (OK), 1 (no savedir specified), 2 (could not open file)
+			// return values: 0 (OK), 
+			// 1 (no savedir specified), 
+			// 2 (could not open file)
 			int save();
 
 		private:
