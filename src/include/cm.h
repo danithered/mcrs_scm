@@ -23,7 +23,7 @@ namespace cmdv {
 	class Compart{
 		public:
 			//Compart content
-			std::list<class rnarep::CellContent> reps;
+			std::vector<double> claims;
 
 			class CompartPool *parent;
 
@@ -31,27 +31,38 @@ namespace cmdv {
 			//Compart base functions
 			Compart(){
 				parent = NULL;
+				metabolism = 0;
 			}
 
 			~Compart(){
-				if (no_repl_neigh) {
-					delete [] (claims);
-				}
-
 				//delete reps;
 			}
+
+			//add replicator
+			int add();
+
+			//kill replicator (CellContents own die() and storing it in wastbin)
+			int die(rnarep::CellContent *rep);
 
 			//calculate metabolism around replicator
 			double M();
 
 			//an update step on this cell
 			void update();
+			void replication();
+			void degradation();
 
 			//split to two compartments
 			int split();
 
+			//clear to ensure it can be rewritten during Moran process (other split)
+			void clear();
+
+
 		private:
-			double metablism;
+			double metabolism; //have to invalidate after each update step 
+			std::list<class rnarep::CellContent> reps;
+			std::list<class rnarep::CellContent> wastebin;
 	
 	};
 
@@ -60,7 +71,7 @@ namespace cmdv {
 		public:
 			int size;
 			int time;
-			int no_replicators;
+			//int no_replicators;
 
 			Compart *comparts;
 			
@@ -79,8 +90,11 @@ namespace cmdv {
 				//saving_freq = 0;
 
 				comparts = new class Compart [size];
+				for(Compart *comp = comparts, *endcomp = comparts+size; compart != endcomp; compart++){
+					compart->parent = this;
+				}
 
-				no_replicators = 0;
+				//no_replicators = 0;
 
 //				std::cout << "Basic Constructor Called" << std::endl;
 			}
@@ -104,6 +118,18 @@ namespace cmdv {
 			///gives back pointer to random comp
 			inline Compart* get() {
 				return(comparts + gsl_rng_uniform_int(r, size) );
+			}
+			
+			///gives back pointer to random comp (excluded arg)
+			inline Compart* get(Compart *except) {
+				if(size < 2) return NULL;
+
+				int n = (int) comparts - except;
+				return( comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) %% size );
+
+				/*compart* out = comparts + gsl_rng_uniform_int(r, size);
+				while(except == out) comparts + gsl_rng_uniform_int(r, size);
+				return(out);*/
 			}
 			
 			///initialises matrix with predefined values, randomly
