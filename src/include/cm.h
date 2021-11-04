@@ -35,11 +35,15 @@ namespace cmdv {
 			}
 
 			~Compart(){
-				//delete reps;
+				for(auto repdel = reps.begin(); repdel != reps.end(); repdel++) delete *repdel;
+				for(auto repdel = wastebin.begin(); repdel != wastebin.end(); repdel++) delete *repdel;
+				
 			}
 
 			//add replicator
-			int add();
+			rnarep::CellContent* add(rnarep::CellContent *rep);
+			rnarep::CellContent* add(std::string newseq);
+			rnarep::CellContent* add();
 
 			//kill replicator (CellContents own die() and storing it in wastbin)
 			int die(rnarep::CellContent *rep);
@@ -61,8 +65,8 @@ namespace cmdv {
 
 		private:
 			double metabolism; //have to invalidate after each update step 
-			std::list<class rnarep::CellContent> reps;
-			std::list<class rnarep::CellContent> wastebin;
+			std::list<class rnarep::CellContent*> reps;
+			std::list<class rnarep::CellContent*> wastebin;
 	
 	};
 

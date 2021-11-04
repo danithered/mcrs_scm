@@ -1,9 +1,51 @@
 #include "ca.h"
 
-namespace cadv {
+namespace cmdv {
 	//int no_births=0;
 	//int no_deaths=0;
 
+	int Compart::die(rnarep::CellContent *rep){
+		rep->die();
+		watebin.push_front(rep);
+		reps.remove(rep);
+	}
+
+	rnarep::CellContent* Compart::add(rnarep::CellContent *rep){
+		reps.push_front(rep);
+		return(rep);
+	}
+
+	rnarep::CellContent* Compart::add(){
+		if(wastebin.empty()){ //have to create new
+			reps.push_front(new rnarep::CellContent);
+		} else { //reuse some from wastebin
+			reps.push_front( wastebin.front() );
+			wastebin.pop_front(); 
+		}
+
+		return( reps.front() );
+		
+	}
+	
+	rnarep::CellContent* Compart::add(std::string newseq){
+		
+		if(wastebin.empty()){ //have to create new
+			reps.push_front(new rnarep::CellContent);
+		} else { //reuse some from wastebin
+			reps.push_front( wastebin.front() );
+			wastebin.pop_front(); 
+		}
+
+		rnarep::CellContent *value = reps.front();
+
+		//add new value
+		(*value) = newseq;
+
+		//annotate
+		value->annotate();
+
+		return(value);
+	}
 
 	double Compart::M(){
 		double M = 1, akt = 0;
