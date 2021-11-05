@@ -65,8 +65,8 @@ namespace cmdv {
 
 		private:
 			double metabolism; //have to invalidate after each update step 
-			std::list<class rnarep::CellContent*> reps;
-			std::list<class rnarep::CellContent*> wastebin;
+			std::list<class rnarep::CellContent> reps;
+			std::list<class rnarep::CellContent> wastebin;
 	
 	};
 

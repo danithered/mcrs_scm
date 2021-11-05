@@ -6,8 +6,7 @@ namespace cmdv {
 
 	int Compart::die(rnarep::CellContent *rep){
 		rep->die();
-		watebin.push_front(rep);
-		reps.remove(rep);
+		wastebin.spline(wastebin.begin(), reps, rep);
 	}
 
 	rnarep::CellContent* Compart::add(rnarep::CellContent *rep){
