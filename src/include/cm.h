@@ -35,18 +35,19 @@ namespace cmdv {
 			}
 
 			~Compart(){
-				for(auto repdel = reps.begin(); repdel != reps.end(); repdel++) delete *repdel;
-				for(auto repdel = wastebin.begin(); repdel != wastebin.end(); repdel++) delete *repdel;
+				//for(auto repdel = reps.begin(); repdel != reps.end(); repdel++) delete *repdel;
+				//for(auto repdel = wastebin.begin(); repdel != wastebin.end(); repdel++) delete *repdel;
 				
 			}
 
 			//add replicator
-			rnarep::CellContent* add(rnarep::CellContent *rep);
-			rnarep::CellContent* add(std::string newseq);
-			rnarep::CellContent* add();
+			std::list<rnarep::CellContent>::iterator Compart::add(rnarep::CellContent rep){
+			std::list<rnarep::CellContent>::iterator Compart::add(){
+			std::list<rnarep::CellContent>::iterator Compart::add(std::string newseq){
+			std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<CellContent> &from){
 
 			//kill replicator (CellContents own die() and storing it in wastbin)
-			int die(rnarep::CellContent *rep);
+			void Compart::die(std::list<rnarep::CellContent>::iterator rep){
 
 			//calculate metabolism around replicator
 			double M();

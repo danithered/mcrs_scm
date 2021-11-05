@@ -4,61 +4,63 @@ namespace cmdv {
 	//int no_births=0;
 	//int no_deaths=0;
 
-	int Compart::die(rnarep::CellContent *rep){
-		rep->die();
+	void Compart::die(std::list<rnarep::CellContent>::iterator rep){
+		if(!rep.empty) rep.die();
 		wastebin.spline(wastebin.begin(), reps, rep);
+		
 	}
 
-	rnarep::CellContent* Compart::add(rnarep::CellContent *rep){
+	std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<CellContent> &from){
+		reps.spline(reps.begin(), from, it);
+		return(reps.begin());
+	}
+
+	std::list<rnarep::CellContent>::iterator Compart::add(rnarep::CellContent rep){
 		reps.push_front(rep);
-		return(rep);
+		return(reps.begin());
 	}
 
-	rnarep::CellContent* Compart::add(){
+	std::list<rnarep::CellContent>::iterator Compart::add(){
 		if(wastebin.empty()){ //have to create new
-			reps.push_front(new rnarep::CellContent);
+			reps.emplace_front();
 		} else { //reuse some from wastebin
-			reps.push_front( wastebin.front() );
-			wastebin.pop_front(); 
+			reps.spline(reps.begin(), wastebin, wastebin.begin() );
 		}
 
-		return( reps.front() );
+		return( reps.begin() );
 		
 	}
 	
-	rnarep::CellContent* Compart::add(std::string newseq){
+	std::list<rnarep::CellContent>::iterator Compart::add(std::string newseq){
 		
 		if(wastebin.empty()){ //have to create new
-			reps.push_front(new rnarep::CellContent);
+			reps.emplace_front();
 		} else { //reuse some from wastebin
-			reps.push_front( wastebin.front() );
-			wastebin.pop_front(); 
+			reps.spline(reps.begin(), wastebin, wastebin.begin() );
 		}
 
-		rnarep::CellContent *value = reps.front();
-
 		//add new value
-		(*value) = newseq;
+		reps.front() = newseq;
 
 		//annotate
-		value->annotate();
+		reps.front().annotate();
 
-		return(value);
+		return(reps.begin());
 	}
 
 	double Compart::M(){
-		double M = 1, akt = 0;
+		double M = 1;
 
 		for(int a = 0; a < par_noEA; a++){
-			akt = 0;
-			for(int met = 0; met < no_met_neigh; met++){
+			double akt = 0;
+			for(auto met = reps.begin(); met != reps.end(); met++){
 				// M(x) = prod(sum (a_i))
-				akt += met_neigh[met]->vals->geta(a) ;
+				akt += met->geta(a) ;
 			}
 			M *= akt;
 		}
 
-		return M;
+		return std::pow(M, 1/par_noEA);
 	}
 
 	void Compart::update(){
