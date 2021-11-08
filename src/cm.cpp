@@ -138,30 +138,6 @@ namespace cmdv {
 		if(reps.size() > par_splitfrom) split();
 	}
 
-
-
-
-
-
-	///gives back coordinates of nth cell
-	std::vector<int> CompartPool::getCoord(int n) {
-		std::vector<int> coords;
-		if (layout == square){
-			coords.push_back(n % ncol); //x coord
-			coords.push_back(n / ncol); //y coord
-		}
-		else if (layout == hex) {
-			//x=n %/% ncol
-			//y = n - x*ncol - x%/%2
-			//z = 0-x-y
-			coords.push_back( n / ncol); //x cubic coord
-			coords.push_back( n - coords[0]*ncol - coords[0]/2 ); //y cubic coord
-			coords.push_back(0 - coords[0] - coords[1]); //z cubic coord
-		}
-
-		return(coords);
-	}
-
 	///initialises matrix with predefined values, randomly
 	void CompartPool::init(std::string *pool, double* probs, int no_choices) {
 		int i = 0;
@@ -196,23 +172,6 @@ namespace cmdv {
 
 		if(cell != (Compart *) matrix + size) std::cerr << "WARNING: file length is not equal to gridsize!" << std::endl;
 //		std::cout << "Grid initialised with " << rnarep::CellContent::no_replicators << " replicators on a grid of " << size << " cells." << std::endl;
-	}
-
-	inline Compart* CompartPool::get(int x, int y) {
-		if(layout == square){
-			return(matrix + y*ncol + x);
-		}
-		return(NULL);
-	}
-	///finds cell in pos [x,y] and gives back its number
-	inline int CompartPool::getN(int x, int y) {
-		if(layout == square){
-			return(y*ncol + x);
-		}
-		else if (layout == hex){
-			return(y + x*ncol + x/2);
-		}
-		return(-1);
 	}
 
 	//a singel update step <- this is called by rUpdate and oUpdate
@@ -325,33 +284,6 @@ namespace cmdv {
 		return(0);
 	}
 
-	//gives back coordinates of nth cell
-	std::vector<int> CompartPool::getCoord(int n, int type = 0) {
-		std::vector<int> coords;
-		if (layout == square){
-			coords.push_back(n % ncol); //x coord
-			coords.push_back(n / ncol); //y coord
-		}
-		else if (layout == hex) {
-			if(type == 0){ //cube coordinates - axial coordinates are the choosen two from this three coords
-				coords.push_back( n / ncol); //x cubic coord
-				coords.push_back( n - coords[0]*ncol - coords[0]/2 ); //y cubic coord
-				coords.push_back(0 - coords[0] - coords[1]); //z cubic coord
-			}
-			else if (type == 1){ //axial coords 
-				coords.push_back( n / ncol); //x cubic coord
-				coords.push_back( n - coords[0]*ncol - coords[0]/2 ); //y cubic coord
-			}
-			else if (type == 2){ //offset coords 
-				coords.push_back(n % ncol); //x coord
-				coords.push_back(n / ncol); //y coord
-			}
-		}
-
-		return(coords);
-	}
-
-	
 	int CompartPool::openOutputs(){
 		std::string name, command;
 		 
@@ -474,7 +406,7 @@ namespace cmdv {
 
 //		std::cout << "output" << std::endl;
 		/* what i need:
-			time, alive, [by akt: No, Rs mean, length mean, alpha mean, mfe mean], [by no akts: number]
+			time, no_replicators, alive, mean_M, sd_M, mean_length, mean_mfe, alive_mean_length, alive_mean_mfe, [by akt: No, Rs mean, length mean, alpha mean, mfe mean], [by no akts: number]
 
 		*/
 		//clearing
