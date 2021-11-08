@@ -11,6 +11,7 @@
 #include "randomgen.h"
 #include "bitmuveletek.h"
 #include "limits"
+#include <list>
 
 using namespace std;
 
@@ -91,6 +92,7 @@ void init_fromfile(char *infile) {
 }
 
 
+
 int main(int argc, char *argv[]) {
 
     //initialise rng
@@ -98,8 +100,31 @@ int main(int argc, char *argv[]) {
     r = (gsl_rng *) gsl_rng_alloc (gsl_rng_mt19937);
     gsl_rng_set(r, time(&timer));
 
-    	int a=2, b=3;
-	std::cout << a / b << " " << a / (double) b << " " << (double) a / b  << std::endl;
+
+	std::list<int> vec;
+	for(int i=1; i<10;i++) vec.push_back(i);
+
+	for(auto v = vec.begin(); v != vec.end();v++) std::cout << *v << std::endl;
+	for(auto v = vec.begin(); v != vec.end()-2;v++) std::cout << *v << std::endl;
+
+/*	std::list<int> vec;
+	std::list<int> waste;
+	for(int i=1; i<10;i++) vec.push_back(i);
+	std::cout << "Created " << vec.size() << " vector" << std::endl;
+
+	for(auto v = vec.begin(); v != vec.end();){
+		std::cout << *v << std::endl;
+		if(gsl_rng_uniform(r) < 0.5){
+			std::cout << "delete" << std::endl;
+			waste.splice(waste.begin(), vec, v++);
+		} else v++;
+	}
+	
+	for(auto v=vec.begin(); v != vec.end(); v++) std::cout << "end: " << *v << std::endl;
+	for(auto v=waste.begin(); v != waste.end(); v++) std::cout << "waste end: " << *v << std::endl;
+*/
+//    	int a=2, b=3;
+//	std::cout << a / b << " " << a / (double) b << " " << (double) a / b  << std::endl;
 
 //	init_fromfile(argv[1]);
 

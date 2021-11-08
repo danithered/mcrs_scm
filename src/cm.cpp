@@ -3,6 +3,28 @@
 namespace cmdv {
 	//int no_births=0;
 	//int no_deaths=0;
+	
+	void Compart::clear(){
+		for(auto rep = reps.begin(); rep != reps.end(); rep++) die(rep);
+	}
+
+	int Compart::split(){
+		Compart *target = parent->get(this); //choose a random cell
+		std::list<rnarep::CellContent> *targetreps = &(target->reps);
+
+		target->clear(); //kill cell
+		
+		//hypergeometric
+		for(auto emigrant = reps.begin(); emigrant != reps.end(); ){
+			if(gsl_rng_uniform(r) < 0.5) {
+				targetreps->spline(targetreps->targetreps->begin(), reps, emigrant++);
+			} 
+			else emigrant++;
+		}
+
+		return(0);
+
+	}
 
 	void Compart::die(std::list<rnarep::CellContent>::iterator rep){
 		if(!rep.empty) rep.die();
@@ -60,45 +82,60 @@ namespace cmdv {
 			M *= akt;
 		}
 
-		return std::pow(M, 1/par_noEA);
+		return std::pow(M, reciproc_noEA);
+	}
+
+	std::list<rnarep::CellContent>::iterator replication(){
+		auto oldfirst= reps.begin();
+		int number_of_new = M() * par_MN; //number of new replicators is linear function of M, slope is par_MN, intercept is 0
+
+		if(number_of_new){
+			double sum=0;
+			double *replicabilities = new double [reps.size()];
+			double r_it = replicabilities;
+
+			//extract Rs
+			for(auto rep = reps.begin(); rep != reps.end(); rep++) { // 0. neighbour is self, but it is empty
+				if(!rep->empty){
+					sum += (*r_it = rep->getR()) ;
+				}
+				r_it++;
+			}
+
+			//create new replicators
+			while(number_of_new--){
+				//which replicator is being replicated
+				int decision = dvtools::brokenStickVals(replicabilities, reps.size(), sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
+				//replicate it!
+				auto newrep = add();
+				newrep->replicate( reps[decision] );
+			}
+			
+
+			//free
+			delete [] (replicabilities);
+		}
+
+		return(oldfirst);
+
 	}
 
 	void Compart::update(){
-		double sum = par_claimEmpty;
-		int decision = 0;
-
-		if (vals->empty) { // if focal cell is empty (it can be filled with a copy)
-			//REPLICATION
-			for(int rep = 1; rep < no_repl_neigh; rep++) { // 0. neighbour is self, but it is empty
-				if(!repl_neigh[rep]->vals->empty){
-					sum += (claims[rep] = repl_neigh[rep]->vals->getR() * repl_neigh[rep]->M() );
-				}
-				else claims[rep] = 0.0;
-			}
-			//decision
-			if(sum){
-				decision = dvtools::brokenStickVals(claims, no_repl_neigh + 1, sum, gsl_rng_uniform(r)) ;
-//				if(decision || (sum!=par_claimEmpty) ) {std::cout << "Replication: decision is: " << decision << " from claims:" << std::endl;
-//									for(int op = 0; op < no_repl_neigh+1;op++ ) std::cout << claims[op]/sum << "\t";
-//									std::cout << std::endl;}
-				if(decision){ //claim 0 is claimEmpty NOTE that the probablity of staying empty is not fixed (e.g. 10%)! In case decision is negative see: brokenStickVals
-						vals->replicate( *(repl_neigh[decision]->vals) );
-						if(gsl_rng_uniform(r) < 0.5) { //havet to switch them at 50 percent
-							switchit( *(repl_neigh[decision]) );
-						}
-//						no_births++;
-//						std::cout << "Replication happend. The two molecules:" << std::endl << *(vals->get_seq()) << std::endl << *(repl_neigh[decision]->vals->get_seq()) << std::endl;  
-				}
-			}
-		}
-		else { //if focal cell is occupied (it can die)
+		//replication and degradation only if cell is not empty
+		if(reps.size()){
+			//replication
+			auto degr_from = replication();
+			
 			//DEGRADATION
-			if(vals->Pdeg > gsl_rng_uniform(r) ) {
-//				no_deaths++;
-//				std::cout << "Degradation with Pdeg " << vals->Pdeg << std::endl;
-				vals->die();
+			for(auto rep = degr_from; rep != reps.end(); rep++){
+				if(rep->Pdeg > gsl_rng_uniform(r) ) {
+//					no_deaths++;
+					die(rep);
+				}
 			}
 		}
+		//splitting
+		if(reps.size() > par_splitfrom) split();
 	}
 
 

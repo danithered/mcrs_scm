@@ -23,7 +23,7 @@ namespace cmdv {
 	class Compart{
 		public:
 			//Compart content
-			std::vector<double> claims;
+			std::list<class rnarep::CellContent> reps;
 
 			class CompartPool *parent;
 
@@ -32,6 +32,7 @@ namespace cmdv {
 			Compart(){
 				parent = NULL;
 				metabolism = 0;
+				reciproc_noEA = 1 / (double) par_noEA;
 			}
 
 			~Compart(){
@@ -54,8 +55,7 @@ namespace cmdv {
 
 			//an update step on this cell
 			void update();
-			void replication();
-			void degradation();
+			std::list<rnarep::CellContent>::iterator replication();
 
 			//split to two compartments
 			int split();
@@ -65,9 +65,8 @@ namespace cmdv {
 
 
 		private:
-			double metabolism; //have to invalidate after each update step 
-			std::list<class rnarep::CellContent> reps;
 			std::list<class rnarep::CellContent> wastebin;
+			double reciproc_noEA;
 	
 	};
 
@@ -87,8 +86,6 @@ namespace cmdv {
 
 			//FUNCTIONS
 
-			int grid_init() ;
-
 			//Constructor 1
 			CompartAut(int _size=300): size(_size){
 				time=0;
@@ -105,7 +102,7 @@ namespace cmdv {
 			}
 			
 			
-			//Deconstructor
+			//Destructor
 			~CompartPool(){
 				if(size) delete [] (comparts);
 //				std::cout << "Deconstructor Called" << std::endl;
