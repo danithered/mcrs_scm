@@ -82,60 +82,51 @@ namespace cmdv {
 			M *= akt;
 		}
 
-		return std::pow(M, reciproc_noEA);
+		metabolism = std::pow(M, reciproc_noEA);
+
+		return(metabolism);
 	}
 
-	std::list<rnarep::CellContent>::iterator replication(){
-		auto oldfirst= reps.begin();
-		int number_of_new = M() * par_MN; //number of new replicators is linear function of M, slope is par_MN, intercept is 0
-
-		if(number_of_new){
-			double sum=0;
-			double *replicabilities = new double [reps.size()];
-			double r_it = replicabilities;
-
-			//extract Rs
-			for(auto rep = reps.begin(); rep != reps.end(); rep++) { // 0. neighbour is self, but it is empty
-				if(!rep->empty){
-					sum += (*r_it = rep->getR()) ;
-				}
-				r_it++;
-			}
-
-			//create new replicators
-			while(number_of_new--){
-				//which replicator is being replicated
-				int decision = dvtools::brokenStickVals(replicabilities, reps.size(), sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
-				//replicate it!
-				auto newrep = add();
-				newrep->replicate( reps[decision] );
+	void Compart::update_growth(){
+		if(!reps.empty()){
+			//choose ONE replicator for replication by broken stick method
+			double cumulate=0.0, sum=0.0;
+			
+			for(auto val = reps.begin(); val != reps.end(); val++) {
+				sum += val->getR();
 			}
 			
+			double random = gsl_rng_uniform(r) * sum;
+			for (auto val = reps.begin(); val != reps.end(); val++) {		
+				if (random <= (cumulate += val->getR()) ) {
+					//found the one to replicate!
+					//replicate it!
+					auto newrep = add();
+					newrep->replicate( *val );
+					break;
+				}
+			}
+			
+			//split it if needed
+			if(reps.size() > par_splitfrom) {
+				split(); //dont forget to count M()-s at the end of splitting!
+			}
+			else M(); //refresh metabolism (as a replicator has been added!)
 
-			//free
-			delete [] (replicabilities);
 		}
-
-		return(oldfirst);
-
 	}
 
-	void Compart::update(){
-		//replication and degradation only if cell is not empty
+	void Compart::update_shrink(){
+		//degradation only if cell is not empty
 		if(reps.size()){
-			//replication
-			auto degr_from = replication();
-			
-			//DEGRADATION
-			for(auto rep = degr_from; rep != reps.end(); rep++){
-				if(rep->Pdeg > gsl_rng_uniform(r) ) {
-//					no_deaths++;
-					die(rep);
-				}
+			//DEGRADATION - it is uniform!
+			//choose a replicator
+			std::list<CellContent>::iterator rep = reps.begin() + gsl_rng_uniform_int(r, reps.size());
+			if(rep->Pdeg > gsl_rng_uniform(r) ) {
+				die(rep);
+				M();
 			}
 		}
-		//splitting
-		if(reps.size() > par_splitfrom) split();
 	}
 
 	///initialises matrix with predefined values, randomly
@@ -282,6 +273,51 @@ namespace cmdv {
 		delete [] (order);
 
 		return(0);
+	}
+
+	void CompartPool::refreshM(){
+		Compart *co = comparts;
+		for(int counter = size; size--; co++) co->M();
+	}
+
+	///update according to M
+	int CompartPool::mUpdate(int gens){
+		if(size < 1) return(-3);
+
+		int iter=0;
+		std::vector<double> Ms;
+
+		//check if output is open
+		if(par_output_interval && !output) {
+			std::cerr << "ERROR: output not open" << std::endl;
+			return(-1);
+		}
+
+		//output/save in case of not init from start
+		if(time){
+			if(par_output_interval && (time % par_output_interval)) do_output();
+			if(par_save_interval && (time % par_save_interval)) save();
+		}
+
+		for(int mtime = time + gens ; time < mtime && rnarep::CellContent::no_replicators; time++){ //updating generations
+			//outputs
+			if (par_output_interval && !(time % par_output_interval)) do_output();
+			if (par_save_interval && !(time % par_save_interval)) save();
+
+			//iterating
+			for(iter = 0; iter < size; iter++){
+				//UPDATING
+				comparts[ dvtools::brokenStickVals(Ms, gsl_rng_uniform_int(r, size) ) ].update();
+			}
+//			std::cout << "Cycle " << time << ": number of total deaths: " << no_deaths << ", number of total births: " << no_births << std::endl;
+		}
+		
+		//saving/outputting
+		if(par_output_interval) do_output();
+		if(par_save_interval) if(save()) return -2;
+
+
+		return rnarep::CellContent::no_replicators;
 	}
 
 	int CompartPool::openOutputs(){

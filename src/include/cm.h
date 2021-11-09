@@ -24,6 +24,7 @@ namespace cmdv {
 		public:
 			//Compart content
 			std::list<class rnarep::CellContent> reps;
+			double metabolism;
 
 			class CompartPool *parent;
 
@@ -89,6 +90,7 @@ namespace cmdv {
 			//Constructor 1
 			CompartAut(int _size=300): size(_size){
 				time=0;
+				sumM = 0;
 				//saving_freq = 0;
 
 				comparts = new class Compart [size];
@@ -151,6 +153,9 @@ namespace cmdv {
 			//Update according to a random order (in every generation all cells will be updated)
 			int oUpdate(int gens);
 
+			//Update according to Metabolism (size update step per generation, not all are updated) 
+			int mUpdate(int gens);
+
 			// Outputs
 			// return values: 
 			// 0 (OK), 
@@ -173,6 +178,7 @@ namespace cmdv {
 			std::vector<double> out_length; //mean length of replicators with no act, act0, act1, etc.
 			std::vector<double> out_a; //mean activity of replicators with no act, act0, act1, etc. (the strength of the indicated activities of course)
 			std::vector<double> out_mfe; //mean mfe of replicators with no act, act0, act1, etc.
+			double sumM;
 	};
 	
 }
