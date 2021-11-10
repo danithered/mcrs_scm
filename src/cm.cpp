@@ -9,6 +9,10 @@ namespace cmdv {
 	}
 
 	int Compart::split(){
+		/*yet to do:
+		 * update metab
+		 * update target metab
+		 * update sumDeg*/
 		Compart *target = parent->get(this); //choose a random cell
 		std::list<rnarep::CellContent> *targetreps = &(target->reps);
 
@@ -103,6 +107,7 @@ namespace cmdv {
 					//replicate it!
 					auto newrep = add();
 					newrep->replicate( *val );
+					parent->sumDeg += newrep->Pdeg; //update sumDeg
 					break;
 				}
 			}
@@ -125,6 +130,7 @@ namespace cmdv {
 			if(rep->Pdeg > gsl_rng_uniform(r) ) {
 				die(rep);
 				M();
+				//dont forget to update sumDeg too!
 			}
 		}
 	}
@@ -273,6 +279,12 @@ namespace cmdv {
 		delete [] (order);
 
 		return(0);
+	}
+
+	void CompartPool::refreshDeg(){
+		Compart *co = comparts;
+		sumDeg = 0;
+		for(int counter = size; size--; co++) if(!co->empty) sumDeg += co->Pdeg;
 	}
 
 	void CompartPool::refreshM(){

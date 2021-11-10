@@ -91,6 +91,7 @@ namespace cmdv {
 			CompartAut(int _size=300): size(_size){
 				time=0;
 				sumM = 0;
+				sumDeg=0;
 				//saving_freq = 0;
 
 				comparts = new class Compart [size];
@@ -179,6 +180,7 @@ namespace cmdv {
 			std::vector<double> out_a; //mean activity of replicators with no act, act0, act1, etc. (the strength of the indicated activities of course)
 			std::vector<double> out_mfe; //mean mfe of replicators with no act, act0, act1, etc.
 			double sumM;
+			double sumDeg;
 	};
 	
 }
