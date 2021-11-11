@@ -24,6 +24,12 @@ namespace cmdv {
 		}
 		
 		target->updateable = false;
+		
+		/*clear leftover
+		 * it would be unfair to inherit something from a metabolism with a possibly completely different composition 
+		 * consider it a price for splitting */
+		leftover = 0;
+		//target->leftover = 0; it is handled in clear()
 
 		return(0);
 
