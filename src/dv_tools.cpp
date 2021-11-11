@@ -57,17 +57,19 @@ namespace dvtools {
 		int choice=0;
 		double cumulate=0.0;
 		
-		if(sum < 0) {
+		if(sum <= 0) {
 			for(sum = choice = 0; choice < noChoices; choice++) {
 				sum += *(values + choice);
 //				std::cout << "calculating sum: + " << *(values + choice) << " = " << sum << std::endl;			
 			}
+			if(sum < 0) return -1;
 		}
 		
-		if(sum <= 0) return -1;
+
+		random *= sum;
 		
 		for (choice = 0; choice < noChoices; choice++) {		
-			if (random < ((cumulate += *(values + choice)) / sum) ) {
+			if (random < (cumulate += *(values + choice))  ) {
 //				std::cout << cumulate << "/" << sum << ">" << random << ", so choice is: " << choice << std::endl;
 				return(choice);
 			}

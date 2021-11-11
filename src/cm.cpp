@@ -93,9 +93,10 @@ namespace cmdv {
 			double sum=0;
 			double *replicabilities = new double [reps.size()];
 			double r_it = replicabilities;
+			int size_origin = reps.size();
 
 			//extract Rs
-			for(auto rep = reps.begin(); rep != reps.end(); rep++) { // 0. neighbour is self, but it is empty
+			for(auto rep = reps.begin(); rep != reps.end(); rep++) { 
 				if(!rep->empty){
 					sum += (*r_it = rep->getR()) ;
 				}
@@ -103,12 +104,12 @@ namespace cmdv {
 			}
 
 			//create new replicators
-			while(number_of_new--){
+			for(int already_added = 0; already_added < number_of_new; already_added++){
 				//which replicator is being replicated
-				int decision = dvtools::brokenStickVals(replicabilities, reps.size(), sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
+				int decision = dvtools::brokenStickVals(replicabilities, size_origin, sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
 				//replicate it!
 				auto newrep = add();
-				newrep->replicate( reps[decision] );
+				newrep->replicate( reps[decision + already_added] );
 			}
 			
 
@@ -182,7 +183,7 @@ namespace cmdv {
 
 	///Random update
 	int CompartPool::rUpdate(int gens){
-		int iter=0, diff_until = dvtools::fracpart(diff * size * time);
+		int iter=0;
 
 		//check if output is open
 		if(par_output_interval && !output) {
@@ -203,11 +204,7 @@ namespace cmdv {
 
 			for(iter = 0; iter < size; iter++){
 				//UPDATING
-				matrix[ gsl_rng_uniform_int(r, size) ].update();
-				//DIFFUSION
-				for(diff_until += diff; diff_until >= 1; diff_until--){
-					matrix[ gsl_rng_uniform_int(r, size) ].diff();
-				}
+				comparts[ gsl_rng_uniform_int(r, size) ].update();
 			}
 //			std::cout << "Cycle " << time << ": number of total deaths: " << no_deaths << ", number of total births: " << no_births << std::endl;
 		}
@@ -223,7 +220,7 @@ namespace cmdv {
 	//Update according to a random order (in every generation all cells will be updated)
 	int CompartPool::oUpdate(int gens){
 		int *order;
-		int iter=0, temp = 0, target = 0, diff_until = dvtools::fracpart(diff * time);
+		int iter=0, temp = 0, target = 0;
 
 		//check if output is open
 		if(par_output_interval && !output) {
@@ -251,27 +248,11 @@ namespace cmdv {
 					order[ target ] = order[ iter ];
 					order[ iter ] = temp;
 					//updateStep( temp );
-					matrix[ temp ].update();
+					comparts[ temp ].update();
 				}
 				else {
 					//updateStep( order[iter] );
-					matrix[ order[iter] ].update();
-				}
-			}
-			//DIFFUSION
-			for(diff_until += diff; diff_until >= 1; diff_until--){
-				for(iter = 0; iter < size; iter++){
-					target = gsl_rng_uniform_int(r, size - iter);
-					if (target) {
-						target += iter;
-						temp = order[target];
-						order[ target ] = order[ iter ];
-						order[ iter ] = temp;
-						matrix[ temp ].diff();
-					}
-					else {
-						matrix[ order[iter] ].diff();
-					}
+					comparts[ order[iter] ].update();
 				}
 			}
 		}
