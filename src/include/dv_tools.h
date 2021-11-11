@@ -1,5 +1,6 @@
 #ifndef _DV_TOOLS_
 #define _DV_TOOLS_
+#include <vector>
 
 namespace dvtools {
 
@@ -13,6 +14,7 @@ namespace dvtools {
 	}
 
 	int brokenStickVals(double *values, int noChoices, double sum, double random); 
+        int brokenStickVals(std::vector<double> &values, double random);
 
 	class quickPosVals {
 		public:
