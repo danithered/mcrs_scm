@@ -26,12 +26,15 @@ namespace cmdv {
 			std::list<class rnarep::CellContent> reps;
 
 			class CompartPool *parent;
+			bool updateable;
 
 			//Functions
 			//Compart base functions
 			Compart(){
 				parent = NULL;
 				metabolism = 0;
+				leftover = 0;
+				updateable = true;
 				reciproc_noEA = 1 / (double) par_noEA;
 			}
 
@@ -67,6 +70,7 @@ namespace cmdv {
 		private:
 			std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
+			double leftover;
 	
 	};
 
@@ -139,6 +143,9 @@ namespace cmdv {
 			
 			///initialises matrix from textfile
 			//void init_fromfile(char * infile); 
+			
+			//clear updateable flag
+			void all_updateable();
 			
 			//Updates
 

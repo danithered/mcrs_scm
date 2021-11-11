@@ -100,13 +100,22 @@ int main(int argc, char *argv[]) {
     r = (gsl_rng *) gsl_rng_alloc (gsl_rng_mt19937);
     gsl_rng_set(r, time(&timer));
 
-
-	std::list<int> vec;
+    	for(int c = 5; c--;) std::cout << c << std::endl;
+/*
+    	double maradek = 0.6;
+    	double par_MN = 10;
+	
+	maradek += 3.1415 * par_MN;
+	int number_of_new = maradek; //number of new replicators is linear function of M, slope is par_MN, intercept is 0
+	maradek -= number_of_new;
+	std::cout << maradek << " " << number_of_new << std::endl;
+*/
+/*	std::list<int> vec;
 	for(int i=1; i<10;i++) vec.push_back(i);
 
 	for(auto v = vec.begin(); v != vec.end();v++) std::cout << *v << std::endl;
 	for(auto v = vec.begin(); v != vec.end()-2;v++) std::cout << *v << std::endl;
-
+*/
 /*	std::list<int> vec;
 	std::list<int> waste;
 	for(int i=1; i<10;i++) vec.push_back(i);

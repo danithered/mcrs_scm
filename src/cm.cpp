@@ -6,6 +6,7 @@ namespace cmdv {
 	
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); rep++) die(rep);
+		leftover = 0; //so it did not inherits lost compartments metabolism
 	}
 
 	int Compart::split(){
@@ -21,6 +22,8 @@ namespace cmdv {
 			} 
 			else emigrant++;
 		}
+		
+		target->updateable = false;
 
 		return(0);
 
@@ -87,7 +90,11 @@ namespace cmdv {
 
 	std::list<rnarep::CellContent>::iterator replication(){
 		auto oldfirst= reps.begin();
-		int number_of_new = M() * par_MN; //number of new replicators is linear function of M, slope is par_MN, intercept is 0
+		
+		//compute number of new replicators
+		leftover += M() * par_MN;  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
+		int number_of_new = leftover; //number is an integer, float part will be used in next round
+		leftover -= number_of_new; //leftover contains that part of metabolism that is not used in this round
 
 		if(number_of_new){
 			double sum=0;
@@ -122,21 +129,23 @@ namespace cmdv {
 	}
 
 	void Compart::update(){
-		//replication and degradation only if cell is not empty
-		if(reps.size()){
-			//replication
-			auto degr_from = replication();
-			
-			//DEGRADATION
-			for(auto rep = degr_from; rep != reps.end(); rep++){
-				if(rep->Pdeg > gsl_rng_uniform(r) ) {
-//					no_deaths++;
-					die(rep);
+		if(updateable){
+			//replication and degradation only if cell is not empty
+			if(reps.size()){
+				//replication
+				auto degr_from = replication();
+				
+				//DEGRADATION
+				for(auto rep = degr_from; rep != reps.end(); rep++){
+					if(rep->Pdeg > gsl_rng_uniform(r) ) {
+//						no_deaths++;
+						die(rep);
+					}
 				}
 			}
+			//splitting
+			if(reps.size() > par_splitfrom) split();
 		}
-		//splitting
-		if(reps.size() > par_splitfrom) split();
 	}
 
 	///initialises matrix with predefined values, randomly
@@ -179,6 +188,13 @@ namespace cmdv {
 	int CompartPool::updateStep(int cell){
 		matrix[cell].update();
 		return(0);
+	}
+
+	void all_updateable(){
+		Compart *comp = comparts;
+		for(int countdown = size; countdown--; comp++){
+			if(!comp->updateable) comp->updateable = true;
+		}
 	}
 
 	///Random update
@@ -239,18 +255,22 @@ namespace cmdv {
 			if (par_output_interval && !(time % par_output_interval)) do_output();
 			if (par_save_interval && !(time % par_save_interval)) save();
 
+			//make all compart updateable
+			all_updateable();
+
 			//UPDATING
 			for(iter = 0; iter < size; iter++){
 				target = gsl_rng_uniform_int(r, size - iter);
-				if (target) {
-					target += iter;
+				if (target) { //it changes with a value higher that itself
+					target += iter; //correct it to point to the absolute position
+					//switch target and iter
 					temp = order[target];
 					order[ target ] = order[ iter ];
 					order[ iter ] = temp;
 					//updateStep( temp );
-					comparts[ temp ].update();
+					comparts[ temp ].update(); //temp is equaal to order[iter]
 				}
-				else {
+				else { //it would change with itself so no change at all
 					//updateStep( order[iter] );
 					comparts[ order[iter] ].update();
 				}
