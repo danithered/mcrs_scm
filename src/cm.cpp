@@ -1,4 +1,4 @@
-#include "ca.h"
+#include "cm.h"
 
 namespace cmdv {
 	//int no_births=0;
@@ -18,7 +18,7 @@ namespace cmdv {
 		//hypergeometric
 		for(auto emigrant = reps.begin(); emigrant != reps.end(); ){
 			if(gsl_rng_uniform(r) < 0.5) {
-				targetreps->spline(targetreps->targetreps->begin(), reps, emigrant++);
+				targetreps->splice(targetreps->begin(), reps, emigrant++);
 			} 
 			else emigrant++;
 		}
@@ -36,13 +36,13 @@ namespace cmdv {
 	}
 
 	void Compart::die(std::list<rnarep::CellContent>::iterator rep){
-		if(!rep.empty) rep.die();
-		wastebin.spline(wastebin.begin(), reps, rep);
+		if(!rep->empty) rep->die();
+		wastebin.splice(wastebin.begin(), reps, rep);
 		
 	}
 
-	std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<CellContent> &from){
-		reps.spline(reps.begin(), from, it);
+	std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<rnarep::CellContent> &from){
+		reps.splice(reps.begin(), from, it);
 		return(reps.begin());
 	}
 
@@ -55,7 +55,7 @@ namespace cmdv {
 		if(wastebin.empty()){ //have to create new
 			reps.emplace_front();
 		} else { //reuse some from wastebin
-			reps.spline(reps.begin(), wastebin, wastebin.begin() );
+			reps.splice(reps.begin(), wastebin, wastebin.begin() );
 		}
 
 		return( reps.begin() );
@@ -67,14 +67,14 @@ namespace cmdv {
 		if(wastebin.empty()){ //have to create new
 			reps.emplace_front();
 		} else { //reuse some from wastebin
-			reps.spline(reps.begin(), wastebin, wastebin.begin() );
+			reps.splice(reps.begin(), wastebin, wastebin.begin() );
 		}
 
 		//add new value
 		reps.front() = newseq;
 
 		//annotate
-		reps.front().annotate();
+		//reps.front().annotate(); // operator= handles it itself 
 
 		return(reps.begin());
 	}
@@ -94,7 +94,7 @@ namespace cmdv {
 		return std::pow(M, reciproc_noEA);
 	}
 
-	std::list<rnarep::CellContent>::iterator replication(){
+	std::list<rnarep::CellContent>::iterator Compart::replication(){
 		auto oldfirst= reps.begin();
 		
 		//compute number of new replicators
@@ -105,7 +105,7 @@ namespace cmdv {
 		if(number_of_new){
 			double sum=0;
 			double *replicabilities = new double [reps.size()];
-			double r_it = replicabilities;
+			double *r_it = replicabilities;
 			int size_origin = reps.size();
 
 			//extract Rs
@@ -122,7 +122,8 @@ namespace cmdv {
 				int decision = dvtools::brokenStickVals(replicabilities, size_origin, sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
 				//replicate it!
 				auto newrep = add();
-				newrep->replicate( reps[decision + already_added] );
+				//newrep->replicate( reps[decision + already_added] );
+				newrep->replicate( *std::next(reps.begin(), decision + already_added) );
 			}
 			
 
@@ -150,12 +151,12 @@ namespace cmdv {
 				}
 			}
 			//splitting
-			if(reps.size() > par_splitfrom) split();
+			if(reps.size() > (unsigned int) par_splitfrom) split();
 		}
 	}
 
 	///initialises matrix with predefined values, randomly
-	void CompartPool::init(std::string *pool, double* probs, int no_choices) {
+	/*void CompartPool::init(std::string *pool, double* probs, int no_choices) {
 		int i = 0;
 		double sum = 0.0;
 		
@@ -165,38 +166,35 @@ namespace cmdv {
 		for(i=0; i < size; i++) {
 			*(matrix[i].vals) = pool[dvtools::brokenStickVals(probs, no_choices, sum, gsl_rng_uniform(r) )];
 		}
-	}	
+	}*/	
 
 	void CompartPool::init_fromfile(char *infile) {
 		std::string line, word;
 
 		std::ifstream file(infile);
-		Compart *cell = matrix;
 
 		if(!file.is_open()) std::cerr << "ERROR: init_fromfile: file can not be opened!" << std::endl;
 
 		rnarep::CellContent::no_replicators = 0; //clearing number of replicators 
 
-		for (int cellnum = 0; cellnum < size && std::getline(file, line); cellnum++){
-		//while (std::getline(file, line) ){
-			std::istringstream linestream(line);
-			linestream >> word;
-//			std::cout << "init_fromfile assigning " << word << std::endl;			
-			*(cell->vals) = word;
-			cell++;
+		for(int cnum = 0; cnum < size; cnum++){
+			for(int no_input = par_num_input_content; no_input-- && std::getline(file, line); ){
+				std::istringstream linestream(line);
+				linestream >> word;
+				comparts[cnum].add(word);
+			}
 		}
 
-		if(cell != (Compart *) matrix + size) std::cerr << "WARNING: file length is not equal to gridsize!" << std::endl;
 //		std::cout << "Grid initialised with " << rnarep::CellContent::no_replicators << " replicators on a grid of " << size << " cells." << std::endl;
 	}
 
 	//a singel update step <- this is called by rUpdate and oUpdate
-	int CompartPool::updateStep(int cell){
+	/*int CompartPool::updateStep(int cell){
 		matrix[cell].update();
 		return(0);
-	}
+	}*/
 
-	void all_updateable(){
+	void CompartPool::all_updateable(){
 		Compart *comp = comparts;
 		for(int countdown = size; countdown--; comp++){
 			if(!comp->updateable) comp->updateable = true;
@@ -409,15 +407,15 @@ namespace cmdv {
 
 	}
 
-	void CompartAut::do_output(){
-
+	void CompartPool::do_output(){}
+/*
 //		std::cout << "output" << std::endl;
-		/* what i need:
+*/		/* what i need:
 			time, no_replicators, alive, mean_M, sd_M, mean_length, mean_mfe, alive_mean_length, alive_mean_mfe, [by akt: No, Rs mean, length mean, alpha mean, mfe mean], [by no akts: number]
 
 		*/
 		//clearing
-		out_no.assign(par_noEA + 1, 0);
+/*		out_no.assign(par_noEA + 1, 0);
 		out_noA.assign(par_noEA + 1, 0);
 		out_R.assign(par_noEA + 1, 0);
 		out_length.assign(par_noEA + 1, 0);
@@ -453,14 +451,14 @@ namespace cmdv {
 					out_mfe[0] += cell->vals->get_mfe();
 				} 
 
-				//calculating means
+*/				//calculating means
 				/*for(int ea = 0; ea <= par_noEA; ea++){
 					out_R[ea] /= out_no[ea];
 					out_length[ea] /= out_no[ea];
 					out_a[ea] /= out_no[ea];
 					out_mfe[ea] /= out_no[ea];
 				}*/
-
+/*
 			} // cell not empty
 		} // tru cells in matrix
 
@@ -490,82 +488,82 @@ namespace cmdv {
 		output.flush();
 
 	}
+*/
 
-
-	int CompartPool::save(){
-		/* Outputs:
-		- text file, tab separated, each line represents a grid point from 0th to last
-			values:
-			seq str mfe Pfold Pdeg no_sites R M type [activities] prev_type
-		- rng binary state file
-		*/
-		std::string emptystring("N\tN\t0\t-1\t-1\t-1\t-1\t-1\t0");
-		std::string filename;
-
-		//prepare string for empty cells
-		for(int ea = 0; ea < par_noEA; ea++) emptystring += "\t0";
-		emptystring += "\t-1\n";
-
-		//open outputs
-		if(!savedir.length()) {
-			std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
-			return (1);
-		}
-		
-		filename = savedir; 
-		filename += '/'; 
-		filename += std::to_string(time);
-		filename += ".tsv";
-		std::ofstream out(filename);
-		
-		if(!out){
-			std::cerr << "ERROR: Could not open file for saving grid data!" << std::endl;
-			return 2;
-		}
-
-		//going throught grid
-		for(Compart *cell = matrix, *end = (Compart *) matrix + size ; cell != end; cell++){
-			rnarep::CellContent *cellcont = cell->vals;
-			//output values:
-			// seq str mfe Pfold Pdeg no_sites R type [alphas]
-			if(cellcont->empty) out << emptystring; 
-			else {
-				out 	<< *(cellcont->get_seq())
-					<< '\t' << cellcont->get_str()
-					<< '\t' << cellcont->get_mfe() 
-					<< '\t' << cellcont->getPfold()
-					<< '\t' << cellcont->Pdeg 
-					<< '\t' << cellcont->get_no_sites()
-					<< '\t' << cellcont->getR()
-					<< '\t' << cell->M()
-					<< '\t' << cellcont->get_type() ; 
-				for(double *a = cellcont->geta(), *a_until = cellcont->geta() + par_noEA; a != a_until; a++){
-					out << '\t' << *a;
-				}
-
-				out 	<< '\t' << cellcont->get_prev_type() << '\n';
-			}
-
-			//out.flush();
-		}
-
-		out.close();
-
-		//saving rng state
-		filename.clear();
-		filename = savedir;
-		filename += "/rngstate";
-		filename += std::to_string(time);
-		filename += ".bin";
-		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
-
-		if(randomszam_mentes(filename.c_str(), r)) {
-			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
-			return 3;
-		}
-
-		return 0;
-	}
+	int CompartPool::save(){}
+//		/* Outputs:
+//		- text file, tab separated, each line represents a grid point from 0th to last
+//			values:
+//			seq str mfe Pfold Pdeg no_sites R M type [activities] prev_type
+//		- rng binary state file
+//		*/
+//		std::string emptystring("N\tN\t0\t-1\t-1\t-1\t-1\t-1\t0");
+//		std::string filename;
+//
+//		//prepare string for empty cells
+//		for(int ea = 0; ea < par_noEA; ea++) emptystring += "\t0";
+//		emptystring += "\t-1\n";
+//
+//		//open outputs
+//		if(!savedir.length()) {
+//			std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
+//			return (1);
+//		}
+//		
+//		filename = savedir; 
+//		filename += '/'; 
+//		filename += std::to_string(time);
+//		filename += ".tsv";
+//		std::ofstream out(filename);
+//		
+//		if(!out){
+//			std::cerr << "ERROR: Could not open file for saving grid data!" << std::endl;
+//			return 2;
+//		}
+//
+//		//going throught grid
+//		for(Compart *cell = matrix, *end = (Compart *) matrix + size ; cell != end; cell++){
+//			rnarep::CellContent *cellcont = cell->vals;
+//			//output values:
+//			// seq str mfe Pfold Pdeg no_sites R type [alphas]
+//			if(cellcont->empty) out << emptystring; 
+//			else {
+//				out 	<< *(cellcont->get_seq())
+//					<< '\t' << cellcont->get_str()
+//					<< '\t' << cellcont->get_mfe() 
+//					<< '\t' << cellcont->getPfold()
+//					<< '\t' << cellcont->Pdeg 
+//					<< '\t' << cellcont->get_no_sites()
+//					<< '\t' << cellcont->getR()
+//					<< '\t' << cell->M()
+//					<< '\t' << cellcont->get_type() ; 
+//				for(double *a = cellcont->geta(), *a_until = cellcont->geta() + par_noEA; a != a_until; a++){
+//					out << '\t' << *a;
+//				}
+//
+//				out 	<< '\t' << cellcont->get_prev_type() << '\n';
+//			}
+//
+//			//out.flush();
+//		}
+//
+//		out.close();
+//
+//		//saving rng state
+//		filename.clear();
+//		filename = savedir;
+//		filename += "/rngstate";
+//		filename += std::to_string(time);
+//		filename += ".bin";
+//		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
+//
+//		if(randomszam_mentes(filename.c_str(), r)) {
+//			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
+//			return 3;
+//		}
+//
+//		return 0;
+//	}
 
 }
 

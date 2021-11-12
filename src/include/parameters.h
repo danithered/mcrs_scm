@@ -22,6 +22,9 @@ extern int par_output_interval;
 extern int par_save_interval;
 extern int par_seed;
 extern int par_seed_plus;
+extern double par_MN;
+extern int par_splitfrom;
+extern int par_num_input_content;
 
 extern char par_ID[255];
 extern char par_str_pool[255];

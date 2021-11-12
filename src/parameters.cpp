@@ -12,6 +12,9 @@ using namespace std;
 				int par_nrow = 300; //
 
 				double par_init_grid = 0.0; //
+				double par_MN = 10.0; //
+				int par_splitfrom = 50; //
+				int par_num_input_content = 50; //
 
 //seed
 				int par_seed = -1;

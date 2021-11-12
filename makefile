@@ -12,10 +12,10 @@ CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -ggdb -
 
 LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp
 
-_DEPS = ca.h randomgen.h dv_tools.h parameters.h rnarep.h annot.h
+_DEPS = ca.h randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o ca.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o
+_OBJ = main.o ca.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o cm.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_test = test.o annot.o parameters.o dv_tools.o bitmuveletek.o 

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstring>
 #include <sys/stat.h>
+#include <list>
 
 #define SINGLESQ 2.0
 #define SINGLEHEX 3.0
@@ -32,7 +33,7 @@ namespace cmdv {
 			//Compart base functions
 			Compart(){
 				parent = NULL;
-				metabolism = 0;
+				//metabolism = 0;
 				leftover = 0;
 				updateable = true;
 				reciproc_noEA = 1 / (double) par_noEA;
@@ -45,13 +46,13 @@ namespace cmdv {
 			}
 
 			//add replicator
-			std::list<rnarep::CellContent>::iterator Compart::add(rnarep::CellContent rep){
-			std::list<rnarep::CellContent>::iterator Compart::add(){
-			std::list<rnarep::CellContent>::iterator Compart::add(std::string newseq){
-			std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<CellContent> &from){
+			std::list<rnarep::CellContent>::iterator add(rnarep::CellContent rep);
+			std::list<rnarep::CellContent>::iterator add();
+			std::list<rnarep::CellContent>::iterator add(std::string newseq);
+			std::list<rnarep::CellContent>::iterator add(std::list<rnarep::CellContent>::iterator it, std::list<rnarep::CellContent> &from);
 
 			//kill replicator (CellContents own die() and storing it in wastbin)
-			void Compart::die(std::list<rnarep::CellContent>::iterator rep){
+			void die(std::list<rnarep::CellContent>::iterator rep);
 
 			//calculate metabolism around replicator
 			double M();
@@ -91,13 +92,13 @@ namespace cmdv {
 			//FUNCTIONS
 
 			//Constructor 1
-			CompartAut(int _size=300): size(_size){
+			CompartPool(int _size=300): size(_size){
 				time=0;
 				//saving_freq = 0;
 
 				comparts = new class Compart [size];
-				for(Compart *comp = comparts, *endcomp = comparts+size; compart != endcomp; compart++){
-					compart->parent = this;
+				for(Compart *comp = comparts, *endcomp = comparts+size; comp != endcomp; comp++){
+					comp->parent = this;
 				}
 
 				//no_replicators = 0;
@@ -130,8 +131,8 @@ namespace cmdv {
 			inline Compart* get(Compart *except) {
 				if(size < 2) return NULL;
 
-				int n = (int) comparts - except;
-				return( comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) %% size );
+				int n = (int) (except - comparts);
+				return( comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) % size );
 
 				/*compart* out = comparts + gsl_rng_uniform_int(r, size);
 				while(except == out) comparts + gsl_rng_uniform_int(r, size);
@@ -142,7 +143,7 @@ namespace cmdv {
 			//void init(std::string* pool, double* probs, int no_choices); 
 			
 			///initialises matrix from textfile
-			//void init_fromfile(char * infile); 
+			void init_fromfile(char * infile); 
 			
 			//clear updateable flag
 			void all_updateable();
@@ -150,7 +151,7 @@ namespace cmdv {
 			//Updates
 
 			///One update step - DOES NOT WORK
-			int updateStep(int cell);
+			//int updateStep(int cell);
 
 			///Random update
 			int rUpdate(int gens);
