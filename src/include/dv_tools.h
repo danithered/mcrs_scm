@@ -1,8 +1,10 @@
 #ifndef _DV_TOOLS_
 #define _DV_TOOLS_
 #include <vector>
+#include <cmath>
 
 namespace dvtools {
+	inline double sd(int n, double sum, double sumsquared);
 
 	inline int Rmod(int a, int b) {
 		int r = a%b; 

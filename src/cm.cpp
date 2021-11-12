@@ -4,6 +4,8 @@ namespace cmdv {
 	//int no_births=0;
 	//int no_deaths=0;
 	
+	unsigned int Compart::no_alive;
+
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); rep++) die(rep);
 		leftover = 0; //so it did not inherits lost compartments metabolism
@@ -89,6 +91,17 @@ namespace cmdv {
 				akt += met->geta(a) ;
 			}
 			M *= akt;
+		}
+		
+		//update alive and no_alive
+		if(alive != (bool) M){ //it has changed
+			if(M){ //new state is alive
+				alive=true;
+				no_alive++;
+			} else { //new state is dead
+				alive=false;
+				no_alive--;
+			}
 		}
 
 		return std::pow(M, reciproc_noEA);
@@ -368,7 +381,7 @@ namespace cmdv {
 		}
 
 		//adding header to output
-		output << "time;replicators";
+		output << "time;replicators;no_alive;mean_M";
 		output << ";no_par;mean_R_par;mean_length_par;mean_mfe_par" ;
 		for(int e = 0; e < par_noEA; e++){
 			output << ";no_enz" << e << ";mean_R_enz" << e << ";mean_length_enz" << e << ";mean_mfe_enz" << e << ";mean_a_enz" << e ;
@@ -407,66 +420,88 @@ namespace cmdv {
 
 	}
 
-	void CompartPool::do_output(){}
-/*
+	void CompartPool::do_output(){
+
 //		std::cout << "output" << std::endl;
-*/		/* what i need:
-			time, no_replicators, alive, mean_M, sd_M, mean_length, mean_mfe, alive_mean_length, alive_mean_mfe, [by akt: No, Rs mean, length mean, alpha mean, mfe mean], [by no akts: number]
+		/* what i need:
+			time,								#ok
+			no_replicators,							#ok
+			alive,								#added
+			mean_M,
+			sd_M,
+			[by akt: No, Rs mean, length mean, mfe mean, alpha mean], 	#ok
+			[by no akts: number]						#ok
 
 		*/
+
 		//clearing
-/*		out_no.assign(par_noEA + 1, 0);
+		out_no.assign(par_noEA + 1, 0);
 		out_noA.assign(par_noEA + 1, 0);
 		out_R.assign(par_noEA + 1, 0);
 		out_length.assign(par_noEA + 1, 0);
 		out_a.assign(par_noEA + 1, 0);
 		out_mfe.assign(par_noEA + 1, 0);
 
+		//compart level variables
+		double sum_M = 0;
+		double sum_M2 = 0;
+
 		//calculating values
-		for(Compart *cell = matrix, *end = (Compart *) matrix + size ; cell != end; cell++){
+		for(Compart *cell = comparts, *end = (Compart *) comparts + size ; cell != end; cell++){
 //			std::cout << "examined cell" << std::endl;
-			if(!cell->vals->empty){ // if cell is not empty
+			
+			//compart level calculations
+			if(cell->alive){
+				double metab = cell->M();
+				sum_M += metab;
+				sum_M2 += metab*metab;
+			}
+
+			//replicators in compart
+			for(auto rep = cell->reps.begin(); rep != cell->reps.end(); rep++){ // iterating tru reps in cell
 				//how much activities does it have?
-				int no_acts = cell->vals->get_no_acts();
+				int no_acts = rep->get_no_acts();
 
 				out_noA[no_acts]++;
 
 				if(no_acts){ //it is not a parasite
 					for(int ea = 1; ea <= par_noEA; ea++){
-						double activity = cell->vals->geta(ea - 1); //indexing of "out_" arrays starts at parazite, "a" starts with activity 0
+						double activity = rep->geta(ea - 1); //indexing of "out_" arrays starts at parazite, "a" starts with activity 0
 //						std::cout << "in rep (" << cell->vals->get_type() <<  ")  having " << no_acts << " activities " << ea << "th activity is " << activity << std::endl;
 						if(activity) { //if it has activity ea
 							out_no[ea]++;
-							out_R[ea] += cell->vals->getR();
-							out_length[ea] += cell->vals->get_length();
-							out_mfe[ea] += cell->vals->get_mfe();
+							out_R[ea] += rep->getR();
+							out_length[ea] += rep->get_length();
+							out_mfe[ea] += rep->get_mfe();
 							out_a[ea] += activity;
 						}
 					}
 				}
 				else { //it is a parasite
 					out_no[0]++;
-					out_R[0] += cell->vals->getR();
-					out_length[0] += cell->vals->get_length();
-					out_mfe[0] += cell->vals->get_mfe();
+					out_R[0] += rep->getR();
+					out_length[0] += rep->get_length();
+					out_mfe[0] += rep->get_mfe();
 				} 
 
-*/				//calculating means
+				//calculating means
 				/*for(int ea = 0; ea <= par_noEA; ea++){
 					out_R[ea] /= out_no[ea];
 					out_length[ea] /= out_no[ea];
 					out_a[ea] /= out_no[ea];
 					out_mfe[ea] /= out_no[ea];
 				}*/
-/*
-			} // cell not empty
+
+			} // for reps
 		} // tru cells in matrix
 
 		//outputting
-		output << time << ';' << rnarep::CellContent::no_replicators;
+		///CompartPool and Compart level variables
+		output << time << ';' << rnarep::CellContent::no_replicators << ';' << Compart::no_alive << ';' << sum_M/Compart::no_alive;
+		///Replicator level variables
 		double no;
 		for(int ea = 0; ea <= par_noEA; ea++) {
-			if(no = (double) out_no[ea]){
+			if( (no = (double) out_no[ea]) ){
 //				std::cout << "outputting: no= " << no << std::endl;
 				output << ';' << no << ';' << out_R[ea]/no << ';' << out_length[ea]/no << ';' << out_mfe[ea]/no;
 				if(ea) output << ';' << out_a[ea]/no;
@@ -488,7 +523,7 @@ namespace cmdv {
 		output.flush();
 
 	}
-*/
+
 
 	int CompartPool::save(){}
 //		/* Outputs:

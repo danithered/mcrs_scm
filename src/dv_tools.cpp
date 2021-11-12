@@ -3,6 +3,10 @@
 #include <iostream>
 
 namespace dvtools {
+	inline double sd(int n, double sum, double sumsquared){
+		return( (n>1)?std::sqrt(std::abs(n*sumsquared - sum*sum) / (n*(n-1))):0.0 ); //SD = \sqrt ( \frac {| n \sum x - \sum^2 x |}{n(n-1)} )
+	}
+
        int brokenStickVals(std::vector<double> &values, double random) {
                /* torott palca egyszeru bemeneti ertekekkel
                 * visszateresi ertekek:
