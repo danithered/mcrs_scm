@@ -381,7 +381,7 @@ namespace cmdv {
 		}
 
 		//adding header to output
-		output << "time;replicators;no_alive;mean_M";
+		output << "time;replicators;no_alive;mean_M;sd_M";
 		output << ";no_par;mean_R_par;mean_length_par;mean_mfe_par" ;
 		for(int e = 0; e < par_noEA; e++){
 			output << ";no_enz" << e << ";mean_R_enz" << e << ";mean_length_enz" << e << ";mean_mfe_enz" << e << ";mean_a_enz" << e ;
@@ -427,8 +427,8 @@ namespace cmdv {
 			time,								#ok
 			no_replicators,							#ok
 			alive,								#added
-			mean_M,
-			sd_M,
+			mean_M,								#added
+			sd_M,								#added
 			[by akt: No, Rs mean, length mean, mfe mean, alpha mean], 	#ok
 			[by no akts: number]						#ok
 
@@ -497,7 +497,11 @@ namespace cmdv {
 
 		//outputting
 		///CompartPool and Compart level variables
-		output << time << ';' << rnarep::CellContent::no_replicators << ';' << Compart::no_alive << ';' << sum_M/Compart::no_alive;
+		output << time << ';' 						//time
+			<< rnarep::CellContent::no_replicators << ';' 		//no_replicators
+			<< Compart::no_alive << ';' 				//no_alive
+			<< sum_M/(double)Compart::no_alive << ';' 		//mean_M
+			<< dvtools::sd(Compart::no_alive, sum_M, sum_M2);	//sd_M
 		///Replicator level variables
 		double no;
 		for(int ea = 0; ea <= par_noEA; ea++) {
