@@ -109,6 +109,8 @@ namespace cmdv {
 //				std::cout << "Basic Constructor Called" << std::endl;
 			}
 			
+			//Constructor 2 - for deserialisation
+			CompartPool() {}
 			
 			//Destructor
 			~CompartPool(){

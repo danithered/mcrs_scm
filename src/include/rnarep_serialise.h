@@ -1,8 +1,12 @@
+#ifndef _RNAREP_SERIALISE_
+#define _RNAREP_SERIALISE_
+
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp> 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
+#include "rnarep.h"
 
 //declare that split serialize to save/load
 BOOST_SERIALIZATION_SPLIT_FREE(rnarep::CellContent)
@@ -24,19 +28,19 @@ namespace boost { namespace serialization {
 			ar << BOOST_SERIALIZATION_NVP(str); 
 		}
 		
-		ar	<< BOOST_SERIALIZATION_NVP(mfe)
-			<< BOOST_SERIALIZATION_NVP(Pfold)
-			<< BOOST_SERIALIZATION_NVP(Pdeg)
-			<< BOOST_SERIALIZATION_NVP(R)
-			<< BOOST_SERIALIZATION_NVP(empty)
-			<< BOOST_SERIALIZATION_NVP(no_sites)
-			<< BOOST_SERIALIZATION_NVP(no_acts)
-			<< BOOST_SERIALIZATION_NVP(type)
-			<< BOOST_SERIALIZATION_NVP(prev_type)
-			<< BOOST_SERIALIZATION_NVP(annot_level);
+		ar	<< BOOST_SERIALIZATION_NVP(repl.mfe)
+			<< BOOST_SERIALIZATION_NVP(repl.Pfold)
+			<< BOOST_SERIALIZATION_NVP(repl.Pdeg)
+			<< BOOST_SERIALIZATION_NVP(repl.R)
+			<< BOOST_SERIALIZATION_NVP(repl.empty)
+			<< BOOST_SERIALIZATION_NVP(repl.no_sites)
+			<< BOOST_SERIALIZATION_NVP(repl.no_acts)
+			<< BOOST_SERIALIZATION_NVP(repl.type)
+			<< BOOST_SERIALIZATION_NVP(repl.prev_type)
+			<< BOOST_SERIALIZATION_NVP(repl.annot_level);
 
 		//adding activities
-		ar << boost::serialization::make_nvp("activities", boost::serialization::make_array(a, par_noEA));
+		ar << boost::serialization::make_nvp("activities", boost::serialization::make_array(repl.a, par_noEA));
 
 	}
 
@@ -46,26 +50,28 @@ namespace boost { namespace serialization {
 
 		//loading str (-> char*)
 		{
-			str::string str;
+			std::string str;
 			ar >> BOOST_SERIALIZATION_NVP(str);
 			std::strcpy(repl.str, str.c_str()); //no need to allocate, constructor did it
 		}
 
 		//other properties
-		ar	>> BOOST_SERIALIZATION_NVP(mfe)
-			>> BOOST_SERIALIZATION_NVP(Pfold)
-			>> BOOST_SERIALIZATION_NVP(Pdeg)
-			>> BOOST_SERIALIZATION_NVP(R)
-			>> BOOST_SERIALIZATION_NVP(empty)
-			>> BOOST_SERIALIZATION_NVP(no_sites)
-			>> BOOST_SERIALIZATION_NVP(no_acts)
-			>> BOOST_SERIALIZATION_NVP(type)
-			>> BOOST_SERIALIZATION_NVP(prev_type)
-			>> BOOST_SERIALIZATION_NVP(annot_level);
+		ar	>> BOOST_SERIALIZATION_NVP(repl.mfe)
+			>> BOOST_SERIALIZATION_NVP(repl.Pfold)
+			>> BOOST_SERIALIZATION_NVP(repl.Pdeg)
+			>> BOOST_SERIALIZATION_NVP(repl.R)
+			>> BOOST_SERIALIZATION_NVP(repl.empty)
+			>> BOOST_SERIALIZATION_NVP(repl.no_sites)
+			>> BOOST_SERIALIZATION_NVP(repl.no_acts)
+			>> BOOST_SERIALIZATION_NVP(repl.type)
+			>> BOOST_SERIALIZATION_NVP(repl.prev_type)
+			>> BOOST_SERIALIZATION_NVP(repl.annot_level);
 
 		//loading activities
-		ar >> boost::serialization::make_nvp("activities", boost::serialization::make_array(a, par_noEA));
+		ar >> boost::serialization::make_nvp("activities", boost::serialization::make_array(repl.a, par_noEA));
 	}
 
 }} // namespace boost::serialization
+
+#endif
 

@@ -529,80 +529,55 @@ namespace cmdv {
 	}
 
 
-	int CompartPool::save(){}
-//		/* Outputs:
-//		- text file, tab separated, each line represents a grid point from 0th to last
-//			values:
-//			seq str mfe Pfold Pdeg no_sites R M type [activities] prev_type
-//		- rng binary state file
-//		*/
-//		std::string emptystring("N\tN\t0\t-1\t-1\t-1\t-1\t-1\t0");
-//		std::string filename;
-//
-//		//prepare string for empty cells
-//		for(int ea = 0; ea < par_noEA; ea++) emptystring += "\t0";
-//		emptystring += "\t-1\n";
-//
-//		//open outputs
-//		if(!savedir.length()) {
-//			std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
-//			return (1);
-//		}
-//		
-//		filename = savedir; 
-//		filename += '/'; 
-//		filename += std::to_string(time);
-//		filename += ".tsv";
-//		std::ofstream out(filename);
-//		
-//		if(!out){
-//			std::cerr << "ERROR: Could not open file for saving grid data!" << std::endl;
-//			return 2;
-//		}
-//
-//		//going throught grid
-//		for(Compart *cell = matrix, *end = (Compart *) matrix + size ; cell != end; cell++){
-//			rnarep::CellContent *cellcont = cell->vals;
-//			//output values:
-//			// seq str mfe Pfold Pdeg no_sites R type [alphas]
-//			if(cellcont->empty) out << emptystring; 
-//			else {
-//				out 	<< *(cellcont->get_seq())
-//					<< '\t' << cellcont->get_str()
-//					<< '\t' << cellcont->get_mfe() 
-//					<< '\t' << cellcont->getPfold()
-//					<< '\t' << cellcont->Pdeg 
-//					<< '\t' << cellcont->get_no_sites()
-//					<< '\t' << cellcont->getR()
-//					<< '\t' << cell->M()
-//					<< '\t' << cellcont->get_type() ; 
-//				for(double *a = cellcont->geta(), *a_until = cellcont->geta() + par_noEA; a != a_until; a++){
-//					out << '\t' << *a;
-//				}
-//
-//				out 	<< '\t' << cellcont->get_prev_type() << '\n';
-//			}
-//
-//			//out.flush();
-//		}
-//
-//		out.close();
-//
-//		//saving rng state
-//		filename.clear();
-//		filename = savedir;
-//		filename += "/rngstate";
-//		filename += std::to_string(time);
-//		filename += ".bin";
-//		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
-//
-//		if(randomszam_mentes(filename.c_str(), r)) {
-//			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
-//			return 3;
-//		}
-//
-//		return 0;
-//	}
+	int CompartPool::save(){
+		/* Outputs:
+		- XML file containing EVERYTHING (except parameters)
+		- rng binary state file
+		*/
+
+		std::string filename;
+
+		//1. SAVING CONTENT
+		{
+			//open outputs
+			if(!savedir.length()) {
+				std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
+				return (1);
+			}
+			
+			filename = savedir; 
+			filename += '/'; 
+			filename += std::to_string(time);
+			filename += ".xml;
+			std::ofstream out(filename);
+			
+			if(!out){
+				std::cerr << "ERROR: Could not open file for saving content!" << std::endl;
+				return 2;
+			}
+
+			//saving content
+			assert(out.good());
+			boost::archive::xml_oarchive oa(out);
+			oa << BOOST_SERIALIZATION_NVP(*this);
+
+		}
+
+		//2. saving rng state
+		filename.clear();
+		filename = savedir;
+		filename += "/rngstate";
+		filename += std::to_string(time);
+		filename += ".bin";
+		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
+
+		if(randomszam_mentes(filename.c_str(), r)) {
+			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
+			return 3;
+		}
+
+		return 0;
+	}
 
 }
 

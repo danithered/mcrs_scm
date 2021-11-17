@@ -12,7 +12,7 @@ CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -ggdb -
 
 LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp -lboost_system -lboost_serialization
 
-_DEPS = ca.h randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h
+_DEPS = ca.h randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h rnarep_serialise.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = main.o ca.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o cm.o
