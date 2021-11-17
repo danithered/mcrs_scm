@@ -71,7 +71,7 @@ namespace cmdv {
 			void clear();
 
 
-		private:
+		//private:
 			std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
 			double leftover;
@@ -190,5 +190,6 @@ namespace cmdv {
 	
 }
 
+#include "cm_serialise.h"
 
 #endif

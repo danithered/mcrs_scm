@@ -548,7 +548,7 @@ namespace cmdv {
 			filename = savedir; 
 			filename += '/'; 
 			filename += std::to_string(time);
-			filename += ".xml;
+			filename += ".xml";
 			std::ofstream out(filename);
 			
 			if(!out){
