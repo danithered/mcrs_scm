@@ -4,7 +4,10 @@
 #include <cmath>
 
 namespace dvtools {
-	inline double sd(int n, double sum, double sumsquared);
+	inline double sd(int n, double sum, double sumsquared){
+		return( (n>1)?std::sqrt(std::abs(n*sumsquared - sum*sum) / (n*(n-1))):0.0 ); //SD = \sqrt ( \frac {| n \sum x - \sum^2 x |}{n(n-1)} )
+	}
+
 
 	inline int Rmod(int a, int b) {
 		int r = a%b; 
