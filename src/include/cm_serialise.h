@@ -1,19 +1,16 @@
-#ifndef _RNAREP_SERIALISE_
-#define _RNAREP_SERIALISE_
+#ifndef _CM_SERIALISE_
+#define _CM_SERIALISE_
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp> 
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/list.hpp>
 #include "rnarep_serialise.h"
 
 //declare to split serilize to save/load
 BOOST_SERIALIZATION_SPLIT_FREE(cmdv::CompartPool)
-
-//declare version
-BOOST_CLASS_VERSION(cmdv::Compart, 1)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 1)
 
 //serialisers
 namespace boost { namespace serialization {
@@ -69,6 +66,10 @@ namespace boost { namespace serialization {
 	}
 	
 }} //namespace boost::serialize
+
+//declare version
+BOOST_CLASS_VERSION(cmdv::Compart, 1)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 1)
 
 #endif
 

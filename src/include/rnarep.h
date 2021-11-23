@@ -150,7 +150,7 @@ namespace rnarep {
 
 			double getPfold();
 
-		private:
+		//private:
 			char *str;
 			float mfe;
 			double Pfold;

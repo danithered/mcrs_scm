@@ -4,15 +4,11 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp> 
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
+#include <boost/serialization/list.hpp>
 #include "rnarep.h"
-
-//declare that split serialize to save/load
-BOOST_SERIALIZATION_SPLIT_FREE(rnarep::CellContent)
-
-//declare version
-BOOST_CLASS_VERSION(rnarep::CellContent, 1)
 
 //serialisers
 namespace boost { namespace serialization {
@@ -72,6 +68,12 @@ namespace boost { namespace serialization {
 	}
 
 }} // namespace boost::serialization
+
+//declare that split serialize to save/load
+BOOST_SERIALIZATION_SPLIT_FREE(rnarep::CellContent)
+
+//declare version
+//BOOST_CLASS_VERSION(rnarep::CellContent, 1)
 
 #endif
 
