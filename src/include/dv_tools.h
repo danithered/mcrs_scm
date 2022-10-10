@@ -4,6 +4,10 @@
 #include <cmath>
 
 namespace dvtools {
+	inline double cov(double n, double sum_xy, double sum_x, double sum_y ) {
+		return( (sum_xy - sum_x*sum_y/n) / (n-1)  ); //Cov = \frac{\sum xy - \frac{1}{n}\sum x \sum y}{n-1}
+	}
+	
 	inline double sd(int n, double sum, double sumsquared){
 		return( (n>1)?std::sqrt(std::abs(n*sumsquared - sum*sum) / (n*(n-1))):0.0 ); //SD = \sqrt ( \frac {| n \sum x - \sum^2 x |}{n(n-1)} )
 	}

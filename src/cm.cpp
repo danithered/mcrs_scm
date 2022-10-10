@@ -12,7 +12,11 @@ namespace cmdv {
 	}
 
 	int Compart::split(){
-		Compart *target = parent->get(this); //choose a random cell
+		//Compart *target = parent->get(this); //choose a random cell
+		//give it to temp
+		parent->temp_comparts.emplace_back();
+		Compart *target = &(parent->temp_comparts.back());
+						     
 		std::list<rnarep::CellContent> *targetreps = &(target->reps);
 
 		target->clear(); //kill cell
@@ -25,7 +29,7 @@ namespace cmdv {
 			else emigrant++;
 		}
 		
-		target->updateable = false;
+		//target->updateable = false;
 		
 		/*clear leftover
 		 * it would be unfair to inherit something from a metabolism with a possibly completely different composition 

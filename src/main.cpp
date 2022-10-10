@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 	cout << "Starting to init simulation " << par_ID << " at " << ctime(&timer); 
 
 	//start to do stuff
-	//cadv::CellAut automata(par_nrow, par_ncol); //initialise automata
+	cmdv::CompartPool automata(300); //initialise automata
 
 	rnarep::CellContent::patterns.readFile(par_str_pool); //read in pattern file
 
@@ -46,10 +46,10 @@ int main(int argc, char *argv[]) {
 	//automata.neighInic(par_Nrep, cadv::torus, 2); //init replication neighbourhood
 
 	//load if needed
-	//if(std::strlen(par_load) > 0) automata.init_fromfile(par_load);
+	if(std::strlen(par_load) > 0) automata.init_fromfile(par_load);
 
 	//open output
-	/*if(automata.openOutputs()) { //returns not 0 if fails
+	if(automata.openOutputs()) { //returns not 0 if fails
 		gsl_rng_free(r);
 
 		//report closing
@@ -57,15 +57,15 @@ int main(int argc, char *argv[]) {
 		std::cout << "Simulation " << par_ID << " ending at: " << ctime(&timer) << std::endl << "It had init problems." << std::endl;
 
 		return -2;
-	}*/
+	}
 	
 	//save parameters
-	//std::string paramfilename(automata.savedir.c_str());
-	//paramfilename += "/parameters.txt";
-	//paramsToFile(paramfilename.c_str());
+	std::string paramfilename(automata.savedir.c_str());
+	paramfilename += "/parameters.txt";
+	paramsToFile(paramfilename.c_str());
 
 	//Running simulation
-	/*if (automata.rUpdate(par_maxtime)){
+	if (automata.oUpdate(par_maxtime)){
 		//close rng
 		gsl_rng_free(r);
 
@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
 		std::cout << "Simulation " << par_ID << " ending at: " << ctime(&timer) << std::endl << "It has died out." << std::endl;
 
 		return 1;
-	}*/
+	}
 
-} 
+}
+

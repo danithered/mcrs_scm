@@ -86,6 +86,7 @@ namespace cmdv {
 			//int no_replicators;
 
 			Compart *comparts;
+			std::list<Compart> temp_comparts;
 			
 			std::string savedir;
 
