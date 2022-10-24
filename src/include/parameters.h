@@ -46,6 +46,9 @@ extern double par_b2;
 extern double par_c;
 extern double par_Emin;
 extern double par_gc_bonus;
+extern double par_rangePdeg;
+extern double par_minPdeg;
+extern double par_flexPdeg;
 
 
 //Functions 

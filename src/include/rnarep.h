@@ -8,8 +8,8 @@
 
 extern "C" {
 #include <ViennaRNA/fold.h>
-//#include <ViennaRNA/utils/basic.h>
-#include <ViennaRNA/fold_vars.h>
+#include <ViennaRNA/utils/basic.h>
+//#include <ViennaRNA/fold_vars.h>
 }
 
 #include "randomgen.h"
@@ -45,6 +45,19 @@ namespace rnarep {
 
 			//initialiser
 			CellContent(){	
+				// allocate memory for MFE structure (length + 1)
+				//str = (char *) vrna_alloc(sizeof(char) * ( MAXLEN  + 1));
+				str = new char [MAXLEN + 1];
+
+				// allocate memory for enzymaitc activities
+				a = new double [par_noEA];
+
+				seq.reserve(MAXLEN);
+				//ins.reserve(MAXLEN+1);
+				//subs.reserve(MAXLEN+1);
+				//dels.reserve(MAXLEN);
+
+
 				int len=0;
 				
 				//initialise array for seq
@@ -61,24 +74,17 @@ namespace rnarep {
 					annotate();
 				}
 				else { //empty
+					empty = false; //to die properly
 					die();
 				}
 
-				seq.reserve(MAXLEN);
-				//ins.reserve(MAXLEN+1);
-				//subs.reserve(MAXLEN+1);
-				//dels.reserve(MAXLEN);
 
 				
-				// allocate memory for MFE structure (length + 1)
-				//str = (char *) vrna_alloc(sizeof(char) * ( MAXLEN  + 1));
-				str = new char [MAXLEN + 1];
-
-				// allocate memory for enzymaitc activities
-				a = new double [par_noEA];
+//				std::cout << "initialised without content" << par_noEA << std::endl;
 			 }
 
 			CellContent(std::string input_str){
+				empty=true;
 				seq.reserve(MAXLEN);
 				//ins.reserve(MAXLEN+1);
 				//subs.reserve(MAXLEN+1);
@@ -93,6 +99,8 @@ namespace rnarep {
 				// allocate memory for enzymaitc activities
 				a = new double [par_noEA];
 
+//				std::cout << "initialised" << par_noEA << std::endl;
+	
 				if(seq.length()){
 					annotate();
 				}
@@ -104,20 +112,20 @@ namespace rnarep {
 			~CellContent(){
 				//delete [] (seq);
 				//cleanup memory
-				free(str);
+				delete [] (str);
 				delete [] (a);
 			}
 
 			void operator =( std::string& templ){
 //				std::cout << "CellContent assignment from templ " << templ << " on empty (" << empty << ") cell.\n";				
-				if(! empty) die();
+				die(); // !empty is checked in die()
 
 				//check if new seq is ok
 				if(templ.length() && (templ != "N") && (templ != "0") ){ //length is not zero AND seq is not "N" or "0"
 					seq = templ;
 					//if(seq.length()) 
 					annotate();
-//					std::cout << "added new replicator" << std::endl;
+//					std::cout << "added new replicator " << seq << std::endl;
 				}
 //				else std::cout << "cell stayed empty" << std::endl;
 			}
@@ -125,6 +133,8 @@ namespace rnarep {
 			void die();
 
 			void replicate( CellContent &templ);
+			
+			void replicate_clear( CellContent &templ);
 
 			double geta(int no);
 
@@ -137,6 +147,8 @@ namespace rnarep {
 			int get_no_acts();
 
 			unsigned long long int get_type();
+
+			unsigned long long int get_type_rev();
 
 			unsigned long long int get_prev_type();
 
@@ -175,12 +187,14 @@ namespace rnarep {
 				
 				// predict Minmum Free Energy and corresponding secondary structure
 				//mfe = vrna_fold(seq.c_str(), str);
-				mfe = (double) fold(seq.c_str(), str);
+				mfe = (double) vrna_fold(seq.c_str(), str);
 					  
 				//calculate Pdeg
-				Pdeg = 0.9 - 0.8 * (mfe<par_Emin?par_Emin:mfe) / par_Emin ;
+				//Pdeg = 0.9 - 0.8 * (mfe<par_Emin?par_Emin:mfe) / par_Emin ;
+				//Pdeg = par_maxPdeg -  par_rangePdeg* (mfe<par_Emin?par_Emin:mfe) / par_Emin ;
 				//Pdeg = 0.05 - 0.049 * ( (mfe<par_Emin)?par_Emin:mfe) / par_Emin ;
 				//Pdeg=0.07;
+				Pdeg = par_minPdeg + par_rangePdeg * std::exp(par_flexPdeg * mfe);
 				
 				no_replicators++;
 			} 
@@ -231,5 +245,4 @@ namespace rnarep {
 
 
 #endif
-
 

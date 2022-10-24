@@ -16,6 +16,7 @@ namespace dv_annot{
 		public:
 			double *value; //the value of the structure
 			int no_bases; //number of bases as subrule
+			int no_GC_in_pattern;
 
 			char *base;
 			int *pos;
@@ -23,7 +24,9 @@ namespace dv_annot{
 			//Constructor
 			Subrule(){
 				no_bases = 0;
+				no_GC_in_pattern = 0;
 				value = new double [par_noEA];
+//				std::cout << "Subrule allocated (empty constr) " << par_noEA << " values" << std::endl;
 //				std::cout << "Subrule initialised" << std::endl;
 			}
 
@@ -31,6 +34,7 @@ namespace dv_annot{
 			Subrule(const Subrule &obj){
 				int i = 0;
 				no_bases = obj.no_bases;
+				no_GC_in_pattern = obj.no_GC_in_pattern;
 				if(no_bases){
 					base = new char[no_bases];
 					pos = new int[no_bases];
@@ -40,6 +44,7 @@ namespace dv_annot{
 					}
 				}
 				value = new double [par_noEA];
+//				std::cout << "Subrule allocated (copy constr) " << par_noEA << " values" << std::endl;
 				for(i = 0; i < par_noEA; i++){
 					value[i] = obj.value[i];
 				}
@@ -50,6 +55,7 @@ namespace dv_annot{
 			void operator = (const Subrule &obj){
 				int i = 0;
 				no_bases = obj.no_bases;
+				no_GC_in_pattern = obj.no_GC_in_pattern;
 				if(no_bases){
 					base = new char[no_bases];
 					pos = new int[no_bases];
@@ -58,7 +64,12 @@ namespace dv_annot{
 						pos[i] = obj.pos[i];
 					}
 				}
+				//reallocate memory - probably completely unnecessary, but it cost nothing
+				delete [] (value);
 				value = new double [par_noEA];
+//				std::cout << "Subrule allocated (operator =) " << par_noEA << " values" << std::endl;
+
+				//copy value
 				for(i = 0; i < par_noEA; i++){
 					value[i] = obj.value[i];
 				}
@@ -69,6 +80,7 @@ namespace dv_annot{
 			~Subrule(){
 //				std::cout << "Subrule destructor called" << std::endl;
 				delete [] (value);
+//				std::cout << "Subrule deleted " << par_noEA << " values" << std::endl;
 
 				if (no_bases) {
 					delete [] (base);

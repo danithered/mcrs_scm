@@ -13,6 +13,12 @@ namespace dv_annot{
 		pos = new int[no_bases];
 		std::strncpy(base, _base, no_bases);
 		std::memcpy(pos, _pos, sizeof(int) * no_bases);
+
+		//count GCs in subrule
+		no_GC_in_pattern = 0;
+		for(int i = 0; i < no_bases; i++){
+			if(base[i] == 'G' || base[i] == 'C') no_GC_in_pattern++;
+		}
 	}
 
 	//Funcion to initialise base
@@ -79,7 +85,8 @@ namespace dv_annot{
 
 	//Functions for PatternPool
 	void PatternPool::readFile(char *filename){
-		int no = 0, min = 0, order = 0; //number of ea, subrules
+		int no = 0; 
+		int min = 0; //number of ea, subrules
 		std::string word;
 		
 		std::ifstream file;
@@ -114,8 +121,8 @@ namespace dv_annot{
 		//sorting rules by pattern_length 
 		if(rules.size() > 1) {
 			class Rule memory(0);
-			for( no = 0; no < (rules.size() - 1); no++){
-				for(order = no + 1, min = no; order < rules.size(); order++){
+			for( no = 0; (unsigned int) no < (rules.size() - 1); no++){
+				for(unsigned int order = no + 1, min = no; order < rules.size(); order++){
 					if(rules[order].pattern_length < rules[min].pattern_length ) min = order;
 				}
 				if(min != no) {
@@ -145,6 +152,7 @@ namespace dv_annot{
 	int PatternPool::search(char *seq, char *str, double *acts){
 		char *templ, *templ_seq;
 		int templ_length = std::strlen(seq);
+		double stepwise[] = {0.0, 0.1, 0.8, 1.0};
 
 		//clear();
 		int sites=0;
@@ -155,7 +163,7 @@ namespace dv_annot{
 		
 //		std::cout << "search this: " << seq << "\t" << str << "\t a:"; for (int pr = 0; pr < par_noEA; pr++ ) std::cout << acts[pr] << " "; std::cout << std::endl;
 		
-		if(templ_length) for(int search = 0; search < rules.size() && rules[search].pattern_length <= templ_length ; search++){ // goes tru rules
+		if(templ_length) for(unsigned int search = 0; search < rules.size() && rules[search].pattern_length <= templ_length ; search++){ // goes tru rules
 //			std::cout << "search = " << search << std::endl;
 
 			for(templ = std::strstr(str, rules[search].pattern) ; templ != NULL; templ = std::strstr(++templ, rules[search].pattern)){ // finds rule's patterns
@@ -168,18 +176,29 @@ namespace dv_annot{
 					char *base = rules[search].subrules[sr].base;
 					int *pos = rules[search].subrules[sr].pos;
 					int *pos_max = pos + rules[search].subrules[sr].no_bases;
+					double subrules_apply = 0.0;
 
 //					std::cout << "compare " << *(seq + (templ - str + *pos)) << "and" << *base << " (from " << rules[search].subrules[sr].no_bases << " bases)" << std::endl;
-					for(templ_seq = seq + (templ - str); pos != pos_max && templ_seq[*pos] == *base; base++, pos++){} //checks subrule
-
+					//for(templ_seq = seq + (templ - str); pos != pos_max && templ_seq[*pos] == *base; base++, pos++){} //checks subrule
+					for(templ_seq = seq + (templ - str); pos != pos_max; base++, pos++){
+						if(templ_seq[*pos] == *base) subrules_apply++; //checks subrule
+					}
 //					std::cout << "pos " << pos << " pos max "<< pos_max << std::endl;
-					if (pos == pos_max){ //subrule applies
+//
+					//if number of subrules = 3 -> go stepwise like balazs, else go linearly
+					if(rules[search].no_subrules == 3){
+						subrules_apply = stepwise[(int) subrules_apply];
+					} else {
+						subrules_apply /= (double) rules[search].no_subrules;
+					}
+
+					if (subrules_apply > 0){ //subrule applies
 						sites++;
 
 						//looking tru activities in subrule
 						for(int act = 0; act < par_noEA; act++){
 //							std::cout << rules[search].subrules[sr].value[act] << " added to activity " << act << std::endl;
-							int curr_act = rules[search].subrules[sr].value[act];
+							double curr_act = rules[search].subrules[sr].value[act];
 
 							if(curr_act){ //if subrule adds a valid activity
 								/******************************/
@@ -189,7 +208,7 @@ namespace dv_annot{
 									int gc_num = 0; //it will compute the ratio of pirimidin bases in open "." positions in the structure
 
 									//compute number of open bases in motif and number of C/Us in open places
-									for(int b = 0; b < templ_length; b++){
+									for(int b = 0; b < rules[search].pattern_length; b++){
 										if(templ[b] == '.' && (templ_seq[b] == 'G' || templ_seq[b] == 'C')){
 											//open_bases++;
 											//if(templ_seq[b] == 'G' || templ_seq[b] == 'C') 
@@ -198,16 +217,17 @@ namespace dv_annot{
 									}
 
 									//calc
-									if( gc_num ) {
+									gc_num -= rules[search].subrules[sr].no_GC_in_pattern; //substract GC that is there as a part of the subrule
+									if( gc_num > 0) {
 										//acts[act] += curr_act * (1 + par_gc_bonus * (double) gc_num / open_bases); // if there is bonus system and bonus
-										acts[act] += curr_act * gcBonusFunc[gc_num]; // if there is bonus system and bonus
+										acts[act] += subrules_apply * curr_act * gcBonusFunc[gc_num]; // if there is bonus system and bonus
 										 
 									} else {
-										acts[act] += curr_act; // if there is bonus system, but no bonus (only core activity)
+										acts[act] += subrules_apply * curr_act; // if there is bonus system, but no bonus (only core activity)
 									}
 								} else {
 									//no bonus system
-									acts[act] += curr_act;
+									acts[act] += subrules_apply * curr_act;
 								}
 
 								/******************************/
@@ -236,7 +256,7 @@ namespace dv_annot{
 	}
 
 	void PatternPool::printRules(){
-		for(int r = 0; r < rules.size(); r++){
+		for(unsigned int r = 0; r < rules.size(); r++){
 			std::cout << "############################" << std::endl;
 			std::cout << "RULE no " << r+1 << std::endl << std::endl;
 			std::cout << "pattern: " <<  rules[r].pattern << std::endl << std::endl;

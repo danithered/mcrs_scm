@@ -65,6 +65,9 @@ e is mfe of replicator
 */
 				double par_Emin = -25.0; //
 
+				double par_rangePdeg = 0.8; //
+				double par_minPdeg = 0.1; //
+				double par_flexPdeg = 0.2; //
 
 
 
@@ -115,6 +118,9 @@ int paramsToFile(const char* filename){
 	paramfile << "par_b2 " << par_b2 << std::endl;
 	paramfile << "par_c " << par_c << std::endl;
 	paramfile << "par_Emin " << par_Emin << std::endl;
+	paramfile << "par_rangePdeg " << par_rangePdeg << std::endl;
+	paramfile << "par_minPdeg " << par_minPdeg << std::endl;
+	paramfile << "par_flexPdeg " << par_flexPdeg << std::endl;
 	//paramfile << "par_Nmet " << par_Nmet << std::endl;
 	//paramfile << "par_Nrep " << par_Nrep << std::endl;
 	paramfile << "par_gc_bonus " << par_gc_bonus << std::endl;
@@ -140,12 +146,12 @@ int Args(int argc, char **argv)
 			//if(!strcmp(argv[i], "--par_death")) option = 'k';
 			if(!strcmp(argv[i], "--par_diffusion_rate")) option = 'D';
 			else if(!strcmp(argv[i], "--par_maxtime")) option = 'T';
-			else if(!strcmp(argv[i], "--par_ncol")) option = 'C';
-			else if(!strcmp(argv[i], "--par_nrow")) option = 'R';
+			//else if(!strcmp(argv[i], "--par_ncol")) option = 'C';
+			//else if(!strcmp(argv[i], "--par_nrow")) option = 'R';
 			else if(!strcmp(argv[i], "--par_output_interval")) option = 'o';
 			else if(!strcmp(argv[i], "--par_save_interval")) option = 'w';
 			else if(!strcmp(argv[i], "--par_seed")) option = 'y';
-			else if(!strcmp(argv[i], "--par_seed_plus")) option = 'x';
+			else if(!strcmp(argv[i], "--par_seed_plus")) option = '+';
 			else if(!strcmp(argv[i], "--par_ID")) option = 'I';
 			else if(!strcmp(argv[i], "--par_str_pool")) option = 'P';
 			else if(!strcmp(argv[i], "--par_outdir")) option = 'O';
@@ -153,10 +159,10 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_savedir")) option = 'A';
 			else if(!strcmp(argv[i], "--par_load")) option = 'L';
 			else if(!strcmp(argv[i], "--par_seed_file")) option = 'f';
-			else if(!strcmp(argv[i], "--par_init_grid")) option = 'S';
+			//else if(!strcmp(argv[i], "--par_init_grid")) option = 'S';
 			else if(!strcmp(argv[i], "--par_ll")) option = 'l';
 			else if(!strcmp(argv[i], "--par_sigma")) option = 'G';
-			else if(!strcmp(argv[i], "--par_claimEmpty")) option = 'E';
+			//else if(!strcmp(argv[i], "--par_claimEmpty")) option = 'E';
 			else if(!strcmp(argv[i], "--par_substitution")) option = 's';
 			else if(!strcmp(argv[i], "--par_insertion")) option = 'i';
 			else if(!strcmp(argv[i], "--par_deletion")) option = 'd';
@@ -165,9 +171,12 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_b2")) option = '2';
 			else if(!strcmp(argv[i], "--par_c")) option = 'c';
 			else if(!strcmp(argv[i], "--par_Emin")) option = 'e';
-			else if(!strcmp(argv[i], "--par_Nmet")) option = 'm';
-			else if(!strcmp(argv[i], "--par_Nrep")) option = 'r';
+			//else if(!strcmp(argv[i], "--par_Nmet")) option = 'm';
+			//else if(!strcmp(argv[i], "--par_Nrep")) option = 'r';
 			else if(!strcmp(argv[i], "--par_gc_bonus")) option = 'U';
+			else if(!strcmp(argv[i], "--par_rangePdeg")) option = 'x';
+			else if(!strcmp(argv[i], "--par_minPdeg")) option = 'X';
+			else if(!strcmp(argv[i], "--par_flexPdeg")) option = 'k';
 		}
 		switch(option){
 			// double
@@ -205,6 +214,34 @@ int Args(int argc, char **argv)
 					std::cerr << "ERROR at reading argoments: option " << option << ": par_c have to be negative (it is the negative of scaling factor c)!" << std::endl;
 					return(-1);
 				}
+				continue;
+
+			case 'x':
+				if (++i == argc) return 1;
+				par_rangePdeg = atof(argv[i]);
+				if(par_rangePdeg < 0 || par_rangePdeg > 1) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": have to be between 0 and 1!" << std::endl;
+					return(-1);
+				}
+				continue;
+			
+			
+			case 'X':
+				if (++i == argc) return 1;
+				par_minPdeg = atof(argv[i]);
+				if(par_minPdeg < 0 || par_minPdeg > 1) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": have to be between 0 and 1!" << std::endl;
+					return(-1);
+				}
+				continue;
+			
+			case 'k':
+				if (++i == argc) return 1;
+				par_flexPdeg = atof(argv[i]);
+				/*if(par_flexPdeg < 0 || par_flexPdeg > 1) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": have to be between 0 and 1!" << std::endl;
+					return(-1);
+				}*/
 				continue;
 
 			case '2':
@@ -325,7 +362,7 @@ int Args(int argc, char **argv)
 				continue;
 			
 			// int
-			case 'x':
+			case '+':
 				if (++i == argc) return 1;
 				par_seed_plus = atoi(argv[i]);
 				continue;
