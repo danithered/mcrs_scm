@@ -9,12 +9,12 @@ C=gcc
 
 #CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -ggdb -fexceptions -Wall -pg # for testing
 CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -O3 # for stuff
-#CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` -O3 -pthread -I/home/danielred/packages -I/home/danielred/packages/ViennaRNA  # for stuff with RNAfold 2.1.5
+#CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` -O3 -pthread -I/home/danielred/packages -I/home/danielred/packages/ViennaRNA -lboost_system -lboost_serialization # for stuff with RNAfold 2.1.5
 
-LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp -lboost_system -lboost_serialization
+LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp
 #LIBS=-lm `pkg-config --libs gsl` -L/home/danielred/packages/ViennaRNA/lib -fno-lto -Wl,-fno-lto -lRNA -fopenmp -lgsl -lgslcblas -lpthread -lstdc++ -fopenmp # for RNAlib 2.1.5
 
-_DEPS = randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h rnarep_serialise.h cm_serialise.h
+_DEPS = randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = main.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o cm.o
