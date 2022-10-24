@@ -27,7 +27,7 @@ namespace cmdv {
 			std::list<class rnarep::CellContent> reps;
 
 			class CompartPool *parent;
-			bool updateable;
+			//bool updateable;
 			bool alive;
 			static unsigned int no_alive;
 
@@ -38,7 +38,7 @@ namespace cmdv {
 				alive=false;
 				//metabolism = 0;
 				leftover = 0;
-				updateable = true;
+				//updateable = true;
 				reciproc_noEA = 1 / (double) par_noEA;
 			}
 
@@ -46,6 +46,15 @@ namespace cmdv {
 				//for(auto repdel = reps.begin(); repdel != reps.end(); repdel++) delete *repdel;
 				//for(auto repdel = wastebin.begin(); repdel != wastebin.end(); repdel++) delete *repdel;
 				
+			}
+
+			///owerwrite one compart with other
+			void operator =(Compart& origin){
+				clear();
+				//for(auto rep = origin.reps.begin(); rep != origin.reps.end(); rep++){
+					reps.assign( origin.reps.begin(), origin.reps.end() ); 
+				//}
+				//no need to delete temp_compart, split() will do that anyway...
 			}
 
 			//add replicator
@@ -86,7 +95,7 @@ namespace cmdv {
 			//int no_replicators;
 
 			Compart *comparts;
-			std::list<Compart> temp_comparts;
+			std::vector<Compart> temp_comparts;
 			
 			std::string savedir;
 
@@ -121,6 +130,9 @@ namespace cmdv {
 			
 			//virtual void Update(int cell);
 			
+			//Operators
+			
+			
 			//Functions
 			
 			///gives back pointer to nth comp
@@ -152,12 +164,15 @@ namespace cmdv {
 			void init_fromfile(char * infile); 
 			
 			//clear updateable flag
-			void all_updateable();
+			//void all_updateable();
 			
 			//Updates
 
 			///One update step - DOES NOT WORK
 			//int updateStep(int cell);
+			
+			// Throwing back comparts from temp
+			void compartShower();
 
 			///Random update
 			int rUpdate(int gens);

@@ -22,11 +22,10 @@ namespace cmdv {
 		target->clear(); //kill cell
 		
 		//hypergeometric
-		for(auto emigrant = reps.begin(); emigrant != reps.end(); ){
+		for(auto emigrant = reps.begin(); emigrant != reps.end(); emigrant++){
 			if(gsl_rng_uniform(r) < 0.5) {
-				targetreps->splice(targetreps->begin(), reps, emigrant++);
+				targetreps->splice(targetreps->begin(), reps, emigrant); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
 			} 
-			else emigrant++;
 		}
 		
 		//target->updateable = false;
@@ -153,7 +152,7 @@ namespace cmdv {
 	}
 
 	void Compart::update(){
-		if(updateable){
+		//if(updateable){
 			//replication and degradation only if cell is not empty
 			if(reps.size()){
 				//replication
@@ -169,7 +168,7 @@ namespace cmdv {
 			}
 			//splitting
 			if(reps.size() > (unsigned int) par_splitfrom) split();
-		}
+		//}
 	}
 
 	///initialises matrix with predefined values, randomly
@@ -211,10 +210,47 @@ namespace cmdv {
 		return(0);
 	}*/
 
-	void CompartPool::all_updateable(){
+	/*void CompartPool::all_updateable(){
 		Compart *comp = comparts;
 		for(int countdown = size; countdown--; comp++){
 			if(!comp->updateable) comp->updateable = true;
+		}
+	}*/
+
+	void CompartPool::compartShower(){
+		unsigned int *order, numtemp = temp_comparts.size();
+
+		if(numtemp){
+			int temp = 0;
+			unsigned int iter = 0, target = 0;
+
+			//init order
+			order = new unsigned int[numtemp];
+			for(iter = 0; iter < numtemp; iter++){
+				order[iter] = iter;
+			}
+
+			// relocate them by random order
+			for(iter = 0; iter < numtemp; iter++){
+				target = gsl_rng_uniform_int(r, numtemp - iter);
+				if (target) { //it changes with a value higher that itself
+					target += iter; //correct it to point to the absolute position
+					//switch targe and iter
+					temp = order[target];
+					order[ target ] = order[ iter ];
+					order[ iter ] = temp;
+					//do the stuff - owerwrite a random compart (get()) with the content of a temp_compart 
+					*get() = temp_comparts[ temp ]; //temp is equaal to order[iter]
+				}
+				else { //it would change with itself so no change at all
+				       //do the stuff
+					*get() = temp_comparts[ order[iter] ];
+				}
+			}
+
+			delete [] (order);
+
+			temp_comparts.clear();
 		}
 	}
 
@@ -244,6 +280,10 @@ namespace cmdv {
 				comparts[ gsl_rng_uniform_int(r, size) ].update();
 			}
 //			std::cout << "Cycle " << time << ": number of total deaths: " << no_deaths << ", number of total births: " << no_births << std::endl;
+//			
+//			// after updates throw back new copmarts
+			compartShower();
+
 		}
 		
 		//saving/outputting
@@ -277,7 +317,7 @@ namespace cmdv {
 			if (par_save_interval && !(time % par_save_interval)) save();
 
 			//make all compart updateable
-			all_updateable();
+			//all_updateable();
 
 			//UPDATING
 			for(iter = 0; iter < size; iter++){
@@ -296,10 +336,13 @@ namespace cmdv {
 					comparts[ order[iter] ].update();
 				}
 			}
+
+			// after updates throw back new copmarts
+			compartShower();
 		}
 
 		if(par_save_interval) save();
-		if(par_output_filename) do_output();
+		if( std::strlen(par_output_filename) ) do_output();
 
 		delete [] (order);
 
