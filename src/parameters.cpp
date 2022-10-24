@@ -8,13 +8,11 @@ using namespace std;
 //parameters to change with Args()
 //ca params
 				int par_maxtime = 2000000; //
-				int par_ncol = 300; //
-				int par_nrow = 300; //
 
 				double par_init_grid = 0.0; //
 				double par_MN = 10.0; //
-				int par_splitfrom = 50; //
-				int par_num_input_content = 50; //
+				int par_splitfrom = 50; //size when cells split
+				int par_num_input_content = 50; //number of replicators read from file to cells
 
 //seed
 				int par_seed = -1;
@@ -30,14 +28,6 @@ using namespace std;
 				char par_output_filename[255] = "output.csv"; //
 				char par_savedir[255] = "SAVE"; //
 				char par_load[255] = "IN/1_InputMatrix.dat"; //"\0"; // 
-
-//rates
-				double par_diffusion_rate = 4; //
-				double par_claimEmpty = 0.1; //
-
-//neighbourhoods
-				double par_Nmet = 4; // 3 -> vonNeumann, 4 -> Moore 
-				double par_Nrep = 4; //
 
 //mutation rates
 				double par_substitution = 0.005; //
@@ -98,8 +88,8 @@ int paramsToFile(const char* filename){
 	paramfile << "MAXLEN " << MAXLEN << std::endl;
 	paramfile << "par_noEA " << par_noEA << std::endl;
 	paramfile << "par_maxtime " << par_maxtime << std::endl;
-	paramfile << "par_ncol " << par_ncol << std::endl;
-	paramfile << "par_nrow " << par_nrow << std::endl;
+	//paramfile << "par_ncol " << par_ncol << std::endl;
+	//paramfile << "par_nrow " << par_nrow << std::endl;
 	paramfile << "par_output_interval " << par_output_interval << std::endl;
 	paramfile << "par_save_interval " << par_save_interval << std::endl;
 	paramfile << "par_seed " << par_seed << std::endl;
@@ -112,11 +102,11 @@ int paramsToFile(const char* filename){
 	paramfile << "par_load " << par_load << std::endl;
 	paramfile << "par_seed_file " << par_seed_file << std::endl;
 	//paramfile << "par_death " << par_death << std::endl;
-	paramfile << "par_diffusion_rate " << par_diffusion_rate << std::endl;
+	//paramfile << "par_diffusion_rate " << par_diffusion_rate << std::endl;
 	paramfile << "par_init_grid " << par_init_grid << std::endl;
 	paramfile << "par_ll " << par_ll << std::endl;
 	paramfile << "par_sigma " << par_sigma << std::endl;
-	paramfile << "par_claimEmpty " << par_claimEmpty << std::endl;
+	//paramfile << "par_claimEmpty " << par_claimEmpty << std::endl;
 	paramfile << "par_substitution " << par_substitution << std::endl;
 	paramfile << "par_insertion " << par_insertion << std::endl;
 	paramfile << "par_deletion " << par_deletion << std::endl;
@@ -125,8 +115,8 @@ int paramsToFile(const char* filename){
 	paramfile << "par_b2 " << par_b2 << std::endl;
 	paramfile << "par_c " << par_c << std::endl;
 	paramfile << "par_Emin " << par_Emin << std::endl;
-	paramfile << "par_Nmet " << par_Nmet << std::endl;
-	paramfile << "par_Nrep " << par_Nrep << std::endl;
+	//paramfile << "par_Nmet " << par_Nmet << std::endl;
+	//paramfile << "par_Nrep " << par_Nrep << std::endl;
 	paramfile << "par_gc_bonus " << par_gc_bonus << std::endl;
 	paramfile << "versioninfo " << versioninfo << std::endl;
 	
@@ -181,23 +171,23 @@ int Args(int argc, char **argv)
 		}
 		switch(option){
 			// double
-			case 'r':
-				if (++i == argc) return 1;
-				par_Nrep = atof(argv[i]);
-				//if(par_Nrep > 0 ) {
-				//	std::cerr << "ERROR at reading argoments: option " << option << ": par_Nrep have to be ve!" << std::endl;
-				//	return(-1);
-				//}
-				continue;
+//			case 'r':
+//				if (++i == argc) return 1;
+//				par_Nrep = atof(argv[i]);
+//				//if(par_Nrep > 0 ) {
+//				//	std::cerr << "ERROR at reading argoments: option " << option << ": par_Nrep have to be ve!" << std::endl;
+//				//	return(-1);
+//				//}
+//				continue;
 
-			case 'm':
-				if (++i == argc) return 1;
-				par_Nmet = atof(argv[i]);
-				//if(par_Nmet > 0 ) {
-				//	std::cerr << "ERROR at reading argoments: option " << option << ": par_Nmet have to be negative!" << std::endl;
-				//	return(-1);
-				//}
-				continue;
+//			case 'm':
+//				if (++i == argc) return 1;
+//				par_Nmet = atof(argv[i]);
+//				//if(par_Nmet > 0 ) {
+//				//	std::cerr << "ERROR at reading argoments: option " << option << ": par_Nmet have to be negative!" << std::endl;
+//				//	return(-1);
+//				//}
+//				continue;
 
 			case 'e':
 				if (++i == argc) return 1;
@@ -271,14 +261,14 @@ int Args(int argc, char **argv)
 				}
 				continue;
 
-			case 'E':
-				if (++i == argc) return 1;
-				par_claimEmpty = atof(argv[i]);
-				if(par_claimEmpty < 0) {
-					std::cerr << "ERROR at reading argoments: option " << option << ": par_claimEmpty have to be positive!" << std::endl;
-					return(-1);
-				}
-				continue;
+//			case 'E':
+//				if (++i == argc) return 1;
+//				par_claimEmpty = atof(argv[i]);
+//				if(par_claimEmpty < 0) {
+//					std::cerr << "ERROR at reading argoments: option " << option << ": par_claimEmpty have to be positive!" << std::endl;
+//					return(-1);
+//				}
+//				continue;
 
 			/*case 'k':
 				if (++i == argc) return 1;
@@ -307,14 +297,14 @@ int Args(int argc, char **argv)
 				}
 				continue;
 
-			case 'D':
-				if (++i == argc) return 1;
-				par_diffusion_rate = atof(argv[i]);
-				if(par_diffusion_rate < 0) {
-					std::cerr << "ERROR at reading argoments: option " << option << ": par_diffusion_rate cant be negative!" << std::endl;
-					return(-1);
-				}
-				continue;
+//			case 'D':
+//				if (++i == argc) return 1;
+//				par_diffusion_rate = atof(argv[i]);
+//				if(par_diffusion_rate < 0) {
+//					std::cerr << "ERROR at reading argoments: option " << option << ": par_diffusion_rate cant be negative!" << std::endl;
+//					return(-1);
+//				}
+//				continue;
 			
 			case 'S':
 				if (++i == argc) return 1;
@@ -352,23 +342,23 @@ int Args(int argc, char **argv)
 				par_maxtime = atoi(argv[i]);
 				continue;
 			
-			case 'C':
-				if (++i == argc) return 1;
-				par_ncol = atoi(argv[i]);
-				if(par_ncol <= 0) {
-					std::cerr << "ERROR at reading argoments: option " << option << ": par_ncol cant be negative!" << std::endl;
-					return(-1);
-				}
-				continue;
+//			case 'C':
+//				if (++i == argc) return 1;
+//				par_ncol = atoi(argv[i]);
+//				if(par_ncol <= 0) {
+//					std::cerr << "ERROR at reading argoments: option " << option << ": par_ncol cant be negative!" << std::endl;
+//					return(-1);
+//				}
+//				continue;
 			
-			case 'R':
-				if (++i == argc) return 1;
-				par_nrow = atoi(argv[i]);
-				if(par_nrow <= 0) {
-					std::cerr << "ERROR at reading argoments: option " << option << ": par_nrow cant be negative!" << std::endl;
-					return(-1);
-				}
-				continue;
+//			case 'R':
+//				if (++i == argc) return 1;
+//				par_nrow = atoi(argv[i]);
+//				if(par_nrow <= 0) {
+//					std::cerr << "ERROR at reading argoments: option " << option << ": par_nrow cant be negative!" << std::endl;
+//					return(-1);
+//				}
+//				continue;
 			
 			case 'o':
 				if (++i == argc) return 1;

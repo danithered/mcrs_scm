@@ -184,6 +184,19 @@ namespace cmdv {
 		}
 	}*/	
 
+//	bool CompartPool::compartFromFile(const char * infile){
+//		//std::string line, word;
+//		std::ifstream file(infile);
+//
+//		if(!file.is_open()) {
+//			std::cerr << "ERROR: init_fromfile: file can not be opened!" << std::endl;
+//			return false;
+//		}
+//
+//
+//		return true;
+//	}
+
 	void CompartPool::init_fromfile(char *infile) {
 		std::string line, word;
 
@@ -201,7 +214,6 @@ namespace cmdv {
 			}
 		}
 
-//		std::cout << "Grid initialised with " << rnarep::CellContent::no_replicators << " replicators on a grid of " << size << " cells." << std::endl;
 	}
 
 	//a singel update step <- this is called by rUpdate and oUpdate

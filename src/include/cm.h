@@ -162,6 +162,8 @@ namespace cmdv {
 			
 			///initialises matrix from textfile
 			void init_fromfile(char * infile); 
+
+			//bool compartFromFile(const char * infile);
 			
 			//clear updateable flag
 			//void all_updateable();
