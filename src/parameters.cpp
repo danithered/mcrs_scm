@@ -7,10 +7,10 @@ using namespace std;
 
 //parameters to change with Args()
 //ca params
-				int par_maxtime = 2000000; //
+				int par_maxtime = 2000000; //length of simulation
 
-				double par_init_grid = 0.0; //
 				double par_MN = 10.0; //
+				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
 				int par_num_input_content = 50; //number of replicators read from file to cells
 
@@ -19,15 +19,15 @@ using namespace std;
 				int par_seed_plus = 0;
 				char par_seed_file[255] = "\0";
 //outputting
-				int par_output_interval = 1000; //
-				int par_save_interval = 1000000; //
+				int par_output_interval = 1000; // this often it writes averaged output
+				int par_save_interval = 1000000; // thi often it saves all replicators to files
 
-				char par_ID[255] = "test\0"; //
-				char par_str_pool[255] = "IN/mapping.txt"; //
-				char par_outdir[255] = "OUT"; //
-				char par_output_filename[255] = "output.csv"; //
+				char par_ID[255] = "test\0"; //name of simulation -> name of results folder
+				char par_str_pool[255] = "IN/mapping.txt"; // single file containing decription of enzymatic activities
+				char par_outdir[255] = "OUT"; // name of output folder
+				char par_output_filename[255] = "output.csv"; // the name of file, where average output is written
 				char par_savedir[255] = "SAVE"; //
-				char par_load[255] = "IN/1_InputMatrix.dat"; //"\0"; // 
+				char par_load[255] = "IN/1_InputMatrix.dat"; //"\0"; // initial state
 
 //mutation rates
 				double par_substitution = 0.005; //
@@ -146,7 +146,7 @@ int Args(int argc, char **argv)
 			//if(!strcmp(argv[i], "--par_death")) option = 'k';
 			if(!strcmp(argv[i], "--par_diffusion_rate")) option = 'D';
 			else if(!strcmp(argv[i], "--par_maxtime")) option = 'T';
-			//else if(!strcmp(argv[i], "--par_ncol")) option = 'C';
+			else if(!strcmp(argv[i], "--par_num_input_content")) option = 'n';
 			//else if(!strcmp(argv[i], "--par_nrow")) option = 'R';
 			else if(!strcmp(argv[i], "--par_output_interval")) option = 'o';
 			else if(!strcmp(argv[i], "--par_save_interval")) option = 'w';
@@ -379,14 +379,14 @@ int Args(int argc, char **argv)
 				par_maxtime = atoi(argv[i]);
 				continue;
 			
-//			case 'C':
-//				if (++i == argc) return 1;
-//				par_ncol = atoi(argv[i]);
-//				if(par_ncol <= 0) {
-//					std::cerr << "ERROR at reading argoments: option " << option << ": par_ncol cant be negative!" << std::endl;
-//					return(-1);
-//				}
-//				continue;
+			case 'n':
+				if (++i == argc) return 1;
+				par_num_input_content = atoi(argv[i]);
+				if(par_num_input_content <= 0) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": par_num_input_content cant be negative!" << std::endl;
+					return(-1);
+				}
+				continue;
 			
 //			case 'R':
 //				if (++i == argc) return 1;

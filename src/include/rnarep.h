@@ -44,7 +44,7 @@ namespace rnarep {
 			static dv_annot::PatternPool patterns;
 
 			//initialiser
-			CellContent(){	
+			CellContent():Pdeg(0), empty(true), type(0), annot_level(0){	
 				// allocate memory for MFE structure (length + 1)
 				//str = (char *) vrna_alloc(sizeof(char) * ( MAXLEN  + 1));
 				str = new char [MAXLEN + 1];
@@ -74,7 +74,7 @@ namespace rnarep {
 					annotate();
 				}
 				else { //empty
-					empty = false; //to die properly
+					//empty = false; //to die properly
 					die();
 				}
 
