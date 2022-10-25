@@ -12,7 +12,7 @@ using namespace std;
 				double par_MN = 10.0; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
 				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
-				int par_num_input_content = 50; //number of replicators read from file to cells
+				int par_num_input_content = 25; //number of replicators read from file to cells
 				int par_poolsize = 300; //number of replicators read from file to cells
 
 //seed
@@ -93,7 +93,8 @@ int paramsToFile(const char* filename){
 	paramfile << "par_noEA " << par_noEA << std::endl;
 	paramfile << "par_maxtime " << par_maxtime << std::endl;
 	paramfile << "par_poolsize " << par_poolsize << std::endl;
-	//paramfile << "par_ncol " << par_ncol << std::endl;
+	paramfile << "par_splitfrom " << par_splitfrom << std::endl;
+	paramfile << "par_MN " << par_MN << std::endl;
 	//paramfile << "par_nrow " << par_nrow << std::endl;
 	paramfile << "par_output_interval " << par_output_interval << std::endl;
 	paramfile << "par_save_interval " << par_save_interval << std::endl;
@@ -150,6 +151,7 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_maxtime")) option = 'T';
 			else if(!strcmp(argv[i], "--par_num_input_content")) option = 'n';
 			else if(!strcmp(argv[i], "--par_poolsize")) option = 'N';
+			else if(!strcmp(argv[i], "--par_splitfrom")) option = 'S';
 			//else if(!strcmp(argv[i], "--par_nrow")) option = 'R';
 			else if(!strcmp(argv[i], "--par_output_interval")) option = 'o';
 			else if(!strcmp(argv[i], "--par_save_interval")) option = 'w';
@@ -165,7 +167,7 @@ int Args(int argc, char **argv)
 			//else if(!strcmp(argv[i], "--par_init_grid")) option = 'S';
 			else if(!strcmp(argv[i], "--par_ll")) option = 'l';
 			else if(!strcmp(argv[i], "--par_sigma")) option = 'G';
-			//else if(!strcmp(argv[i], "--par_claimEmpty")) option = 'E';
+			else if(!strcmp(argv[i], "--par_MN")) option = 'M';
 			else if(!strcmp(argv[i], "--par_substitution")) option = 's';
 			else if(!strcmp(argv[i], "--par_insertion")) option = 'i';
 			else if(!strcmp(argv[i], "--par_deletion")) option = 'd';
@@ -180,6 +182,10 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_rangePdeg")) option = 'x';
 			else if(!strcmp(argv[i], "--par_minPdeg")) option = 'X';
 			else if(!strcmp(argv[i], "--par_flexPdeg")) option = 'k';
+			else {
+				std::cerr << "ERROR at reading argoments: not valid argoment (" << argv[i] << ")!" << std::endl;
+				return -1;
+			}
 		}
 		switch(option){
 			// double
@@ -301,14 +307,10 @@ int Args(int argc, char **argv)
 				}
 				continue;
 
-//			case 'E':
-//				if (++i == argc) return 1;
-//				par_claimEmpty = atof(argv[i]);
-//				if(par_claimEmpty < 0) {
-//					std::cerr << "ERROR at reading argoments: option " << option << ": par_claimEmpty have to be positive!" << std::endl;
-//					return(-1);
-//				}
-//				continue;
+			case 'M':
+				if (++i == argc) return 1;
+				par_MN = atof(argv[i]);
+				continue;
 
 			/*case 'k':
 				if (++i == argc) return 1;
@@ -346,14 +348,14 @@ int Args(int argc, char **argv)
 //				}
 //				continue;
 			
-			case 'S':
-				if (++i == argc) return 1;
-				par_init_grid = atof(argv[i]);
-				if(par_init_grid < 0 || par_init_grid > 1) {
-					std::cerr << "ERROR at reading argoments: option " << option << ": have to be between 0 and 1!" << std::endl;
-					return(-1);
-				}
-				continue;
+//			case 'S':
+//				if (++i == argc) return 1;
+//				par_init_grid = atof(argv[i]);
+//				if(par_init_grid < 0 || par_init_grid > 1) {
+//					std::cerr << "ERROR at reading argoments: option " << option << ": have to be between 0 and 1!" << std::endl;
+//					return(-1);
+//				}
+//				continue;
 			
 			case 'U':
 				if (++i == argc) return 1;
@@ -368,6 +370,14 @@ int Args(int argc, char **argv)
 			case '+':
 				if (++i == argc) return 1;
 				par_seed_plus = atoi(argv[i]);
+				continue;
+			case 'S':
+				if (++i == argc) return 1;
+				par_splitfrom = atoi(argv[i]);
+				if(par_splitfrom <= 0) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": cant be negative!" << std::endl;
+					return(-1);
+				}
 				continue;
 			case 'y':
 				if (++i == argc) return 1;
@@ -486,7 +496,7 @@ int Args(int argc, char **argv)
 				continue;
 			
 			default:
-				std::cerr << "ERROR at reading argoments: not valid argoment!" << std::endl;
+				std::cerr << "ERROR at reading argoments: not valid argoment (" << option << ")!" << std::endl;
 				return -1;
 		}
 	}

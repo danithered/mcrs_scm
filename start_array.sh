@@ -3,18 +3,20 @@
 # general settings
 
 maxnum=10 #maximal number of threads used
-par_ID=testing
+par_ID=spattest
 no_repeats=1
 
 #parameter settings
 par_noEA=3
 par_maxtime=100
-par_num_input_content=(5 10 20 50 100)
-par_MN=
+par_num_input_content=(5 10 20)
+par_MN=(5 10 20)
+par_poolsize=(100 300)
+par_splitfrom=(25 50)
 par_rangePdeg=
 par_minPdeg=
 par_flexPdeg=
-par_output_interval=
+par_output_interval=1
 par_save_interval=1000
 par_seed=
 par_str_pool=IN/str/mappingA3.txt
@@ -26,7 +28,7 @@ par_seed_file=
 par_init_grid=
 par_ll=
 par_sigma=
-par_substitution=(0.005 0.0005)
+par_substitution=0.005
 par_insertion=
 par_deletion=
 par_g=
@@ -79,6 +81,8 @@ touch $direct/$file
 	$(printf "%s%s" "--par_minPdeg" $(printf ",%s" "${par_minPdeg[@]}")) \
 	$(printf "%s%s" "--par_num_input_content" $(printf ",%s" "${par_num_input_content[@]}")) \
 	$(printf "%s%s" "--par_rangePdeg" $(printf ",%s" "${par_rangePdeg[@]}")) \
+	$(printf "%s%s" "--par_poolsize" $(printf ",%s" "${par_poolsize[@]}")) \
+	$(printf "%s%s" "--par_splitfrom" $(printf ",%s" "${par_splitfrom[@]}")) \
 	$(printf "%s%s" "--par_Emin" $(printf ",%s" "${par_Emin[@]}")) \
 	$(printf "%s%s" "--par_MN" $(printf ",%s" "${par_MN[@]}")) \
 	$(printf "%s%s" "--par_c" $(printf ",%s" "${par_c[@]}")) \
