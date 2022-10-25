@@ -11,11 +11,12 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.3 basic max, seems fine, output with prev_type\0";
+const char versioninfo[255] = "ver 2.4 parametrised pool, daycare\0";
 
 extern int par_noEA;
 
 extern int par_maxtime;
+extern int par_poolsize;
 extern int par_output_interval;
 extern int par_save_interval;
 extern int par_seed;

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 	cout << "Starting to init simulation " << par_ID << " at " << ctime(&timer); 
 
 	//start to do stuff
-	cmdv::CompartPool automata(300); //initialise automata
+	cmdv::CompartPool automata(par_poolsize); //initialise automata
 
 	rnarep::CellContent::patterns.readFile(par_str_pool); //read in pattern file
 

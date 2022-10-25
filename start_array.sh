@@ -2,7 +2,7 @@
 
 # general settings
 
-maxnum=1
+maxnum=10 #maximal number of threads used
 par_ID=testing
 no_repeats=1
 
@@ -10,6 +10,7 @@ no_repeats=1
 par_noEA=3
 par_maxtime=100
 par_num_input_content=(5 10 20 50 100)
+par_MN=
 par_rangePdeg=
 par_minPdeg=
 par_flexPdeg=
@@ -79,6 +80,7 @@ touch $direct/$file
 	$(printf "%s%s" "--par_num_input_content" $(printf ",%s" "${par_num_input_content[@]}")) \
 	$(printf "%s%s" "--par_rangePdeg" $(printf ",%s" "${par_rangePdeg[@]}")) \
 	$(printf "%s%s" "--par_Emin" $(printf ",%s" "${par_Emin[@]}")) \
+	$(printf "%s%s" "--par_MN" $(printf ",%s" "${par_MN[@]}")) \
 	$(printf "%s%s" "--par_c" $(printf ",%s" "${par_c[@]}")) \
 	$(printf "%s%s" "--par_b2" $(printf ",%s" "${par_b2[@]}")) \
 	$(printf "%s%s" "--par_b1" $(printf ",%s" "${par_b1[@]}")) \

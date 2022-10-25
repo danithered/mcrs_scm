@@ -9,10 +9,11 @@ using namespace std;
 //ca params
 				int par_maxtime = 2000000; //length of simulation
 
-				double par_MN = 10.0; //
+				double par_MN = 10.0; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
 				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
 				int par_num_input_content = 50; //number of replicators read from file to cells
+				int par_poolsize = 300; //number of replicators read from file to cells
 
 //seed
 				int par_seed = -1;
@@ -91,6 +92,7 @@ int paramsToFile(const char* filename){
 	paramfile << "MAXLEN " << MAXLEN << std::endl;
 	paramfile << "par_noEA " << par_noEA << std::endl;
 	paramfile << "par_maxtime " << par_maxtime << std::endl;
+	paramfile << "par_poolsize " << par_poolsize << std::endl;
 	//paramfile << "par_ncol " << par_ncol << std::endl;
 	//paramfile << "par_nrow " << par_nrow << std::endl;
 	paramfile << "par_output_interval " << par_output_interval << std::endl;
@@ -147,6 +149,7 @@ int Args(int argc, char **argv)
 			if(!strcmp(argv[i], "--par_diffusion_rate")) option = 'D';
 			else if(!strcmp(argv[i], "--par_maxtime")) option = 'T';
 			else if(!strcmp(argv[i], "--par_num_input_content")) option = 'n';
+			else if(!strcmp(argv[i], "--par_poolsize")) option = 'N';
 			//else if(!strcmp(argv[i], "--par_nrow")) option = 'R';
 			else if(!strcmp(argv[i], "--par_output_interval")) option = 'o';
 			else if(!strcmp(argv[i], "--par_save_interval")) option = 'w';
@@ -388,14 +391,14 @@ int Args(int argc, char **argv)
 				}
 				continue;
 			
-//			case 'R':
-//				if (++i == argc) return 1;
-//				par_nrow = atoi(argv[i]);
-//				if(par_nrow <= 0) {
-//					std::cerr << "ERROR at reading argoments: option " << option << ": par_nrow cant be negative!" << std::endl;
-//					return(-1);
-//				}
-//				continue;
+			case 'N':
+				if (++i == argc) return 1;
+				par_poolsize = atoi(argv[i]);
+				if(par_poolsize<= 0) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": par_poolsize cant be negative!" << std::endl;
+					return(-1);
+				}
+				continue;
 			
 			case 'o':
 				if (++i == argc) return 1;
