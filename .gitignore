@@ -1,5 +1,10 @@
 *.swp
 nohup.out
-simulation
+mcrscm
 src/obj/
+IN/mapping_*
+IN/param_*
+IN/str/*/randseqs*
+OUT/*
+*.tmp
 
