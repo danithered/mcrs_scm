@@ -162,7 +162,7 @@ namespace cmdv {
 				for(auto rep = degr_from; rep != reps.end(); rep++){
 					if(rep->Pdeg > gsl_rng_uniform(r) ) {
 //						no_deaths++;
-						die(rep);
+						die(rep--);
 					}
 				}
 			}
