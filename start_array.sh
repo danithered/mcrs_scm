@@ -149,7 +149,8 @@ do
 	nohup ./mcrscm $(sed "${i}q;d" $direct/$file) --par_seed_plus $i --par_ID $jobname'_'${i} --par_load IN/mapping_$jobname'_'${i}.txt '>>' $outdirect/output_$jobname '2>&1' &
 	pid[ $(( i - 1)) ]=$!
 	
-	#echo pid no $(( i - 2)) is ${pid[ $(( i - 2)) ]}
+	echo started job no $i with pid ${pid[ $(( i - 1)) ]} as
+	echo nohup ./mcrscm $(sed "${i}q;d" $direct/$file) --par_seed_plus $i --par_ID $jobname'_'${i} --par_load IN/mapping_$jobname'_'${i}.txt '>>' $outdirect/output_$jobname '2>&1' &
 	#echo pids are ${pid[@]}
 	#echo pids are ${pid[@]} numrun is $numrun maxnum is $maxnum
 		

@@ -81,7 +81,7 @@ namespace cmdv {
 
 
 		//private:
-			std::list<class rnarep::CellContent> wastebin;
+			static std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
 			double leftover;
 	
@@ -90,12 +90,13 @@ namespace cmdv {
 	
 	class CompartPool {
 		public:
-			int size;
+			unsigned int size;
 			int time;
 			//int no_replicators;
 
-			Compart *comparts;
-			std::vector<Compart> temp_comparts;
+			Compart **comparts;
+			Compart **temp_comparts;
+			unsigned int used_temp;
 			
 			std::string savedir;
 
@@ -105,13 +106,21 @@ namespace cmdv {
 			//FUNCTIONS
 
 			//Constructor 1
-			CompartPool(int _size=300): size(_size){
+			CompartPool(int _size=300): size(_size), used_temp(0){
 				time=0;
 				//saving_freq = 0;
 
-				comparts = new class Compart [size];
-				for(Compart *comp = comparts, *endcomp = comparts+size; comp != endcomp; comp++){
-					comp->parent = this;
+				comparts = new class Compart* [size];
+				for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
+					*comp = new class Compart;
+					(*comp)->parent = this;
+				}
+
+				//maximum number of new comparts is equal to number of comparts
+				temp_comparts = new class Compart* [size];
+				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size; comp != endcomp; comp++){
+					*comp = new class Compart;
+					(*comp)->parent = this;
 				}
 
 				//no_replicators = 0;
@@ -124,7 +133,14 @@ namespace cmdv {
 			
 			//Destructor
 			~CompartPool(){
-				if(size) delete [] (comparts);
+				if(size) {
+					for(unsigned int i = 0; i < size; ++i ){
+						delete comparts[i];
+						delete temp_comparts[i];
+					}
+					delete [] (comparts);
+					delete [] (temp_comparts);
+				}
 //				std::cout << "Deconstructor Called" << std::endl;
 			}
 			
@@ -137,20 +153,20 @@ namespace cmdv {
 			
 			///gives back pointer to nth comp
 			inline Compart* get(int cell) {
-				return(comparts + cell);
+				return( *(comparts + cell) );
 			}
 
 			///gives back pointer to random comp
-			inline Compart* get() {
-				return(comparts + gsl_rng_uniform_int(r, size) );
+			inline Compart** get() {
+				return( comparts + gsl_rng_uniform_int(r, size) );
 			}
 			
 			///gives back pointer to random comp (excluded arg)
 			inline Compart* get(Compart *except) {
 				if(size < 2) return NULL;
 
-				int n = (int) (except - comparts);
-				return( comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) % size );
+				int n = (int) (except - *comparts);
+				return( *(comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) % size) );
 
 				/*compart* out = comparts + gsl_rng_uniform_int(r, size);
 				while(except == out) comparts + gsl_rng_uniform_int(r, size);
