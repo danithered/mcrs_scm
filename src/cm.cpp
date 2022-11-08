@@ -1,4 +1,5 @@
 #include "cm.h"
+#include "include/rnarep.h"
 
 namespace cmdv {
 	//int no_births=0;
@@ -29,6 +30,8 @@ namespace cmdv {
 				targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
 			} 
 		}
+
+		target->sleep();
 		
 		//target->updateable = false;
 		
@@ -105,11 +108,11 @@ namespace cmdv {
 		//update alive and no_alive
 		if(alive != (bool) M){ //it has changed
 			if(M){ //new state is alive
+				if(!alive) no_alive++;
 				alive=true;
-				no_alive++;
 			} else { //new state is dead
+				if(alive) no_alive--;
 				alive=false;
-				no_alive--;
 			}
 		}
 
@@ -162,6 +165,18 @@ namespace cmdv {
 
 		return(oldfirst);
 
+	}
+
+	void Compart::sleep(){
+		if(M() > 0.0) {
+			no_alive--;
+		}
+		rnarep::CellContent::no_replicators -= reps.size();
+	}
+
+	void Compart::wake(){
+		if(alive) no_alive++; // M() has been run at sleep()
+		rnarep::CellContent::no_replicators += reps.size();
 	}
 
 	void Compart::update(){
@@ -259,7 +274,9 @@ namespace cmdv {
 
 			// relocate them by random order
 			for(iter = 0; iter < numtemp; iter++){
-				target = gsl_rng_uniform_int(r, numtemp - iter);
+				target = gsl_rng_uniform_int(r, numtemp - iter); // child from daycare
+				cmdv::Compart **random_comp = get(); // to be written over
+
 				if (target) { //it changes with a value higher that itself
 					target += iter; //correct it to point to the absolute position
 					//switch targe and iter
@@ -268,25 +285,27 @@ namespace cmdv {
 					order[ iter ] = temp;
 					//do the stuff - owerwrite a random compart (get()) with the content of a temp_compart 
 					//temp is equaal to order[iter]
-					cmdv::Compart *tempc = temp_comparts[temp], **random_comp = get(); // tempc <- temp_comparts
+					cmdv::Compart *tempc = temp_comparts[temp]; // tempc <- temp_comparts
 					temp_comparts[temp] = *random_comp; // temp_comparts <- comparts
 					*random_comp = tempc; // comparts <- tempc
-
+					
 					// kill compart in temp
 					//temp_comparts[ temp ]->clear(); 
+					temp_comparts[ temp ]->sleep(); //tell compart that had been "written over" to fall asleep
 				}
 				else { //it would change with itself so no change at all
 				       //do the stuff
 					//*get() = temp_comparts[ order[iter] ];
 
-					cmdv::Compart **random_comp = get(); 
 					cmdv::Compart *tempc = temp_comparts[ order[iter] ]; // tempc <- temp_comparts
 					temp_comparts[ order[iter] ] = *random_comp; // temp_comparts <- comparts
 					*random_comp = tempc; // comparts <- tempc
 
 					// kill compart in temp
 					//temp_comparts[ order[iter] ]->clear(); 
+					temp_comparts[ order[iter] ]->sleep(); //tell compart that had been "written over" to fall asleep
 				}
+				(*random_comp)->wake();
 			}
 
 			delete [] (order);
@@ -592,7 +611,7 @@ namespace cmdv {
 		output << time << ';' 						//time
 			<< rnarep::CellContent::no_replicators << ';' 		//no_replicators
 			<< Compart::no_alive << ';' 				//no_alive
-			<< sum_M/(double)Compart::no_alive << ';' 		//mean_M
+			<< (Compart::no_alive?(sum_M/(double)Compart::no_alive):0) << ';' 		//mean_M
 			<< dvtools::sd(Compart::no_alive, sum_M, sum_M2);	//sd_M
 		///Replicator level variables
 		double no;

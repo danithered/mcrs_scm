@@ -66,6 +66,9 @@ namespace cmdv {
 			//kill replicator (CellContents own die() and storing it in wastbin)
 			void die(std::list<rnarep::CellContent>::iterator rep);
 
+			void sleep();
+			void wake();
+
 			//calculate metabolism around replicator
 			double M();
 
