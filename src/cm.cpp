@@ -646,46 +646,46 @@ namespace cmdv {
 		- rng binary state file
 		*/
 
-//		std::string filename;
-//
-//		//1. SAVING CONTENT
-//		{
-//			//open outputs
-//			if(!savedir.length()) {
-//				std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
-//				return (1);
-//			}
-//			
-//			filename = savedir; 
-//			filename += '/'; 
-//			filename += std::to_string(time);
-//			filename += ".xml";
-//			std::ofstream out(filename);
-//			
-//			if(!out){
-//				std::cerr << "ERROR: Could not open file for saving content!" << std::endl;
-//				return 2;
-//			}
-//
-//			//saving content
-//			assert(out.good());
+		std::string filename;
+
+		//1. SAVING CONTENT
+		{
+			//open outputs
+			if(!savedir.length()) {
+				std::cerr << "ERROR: No savedir inicialised! Please do run CompartPool::openOutputs() before saving!" << std::endl;
+				return (1);
+			}
+			
+			filename = savedir; 
+			filename += '/'; 
+			filename += std::to_string(time);
+			filename += ".xml";
+			std::ofstream out(filename);
+			
+			if(!out){
+				std::cerr << "ERROR: Could not open file for saving content!" << std::endl;
+				return 2;
+			}
+
+			//saving content
+			assert(out.good());
 //			boost::archive::xml_oarchive oa(out);
 //			oa << BOOST_SERIALIZATION_NVP(*this);
-//
-//		}
-//
-//		//2. saving rng state
-//		filename.clear();
-//		filename = savedir;
-//		filename += "/rngstate";
-//		filename += std::to_string(time);
-//		filename += ".bin";
-//		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
-//
-//		if(randomszam_mentes(filename.c_str(), r)) {
-//			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
-//			return 3;
-//		}
+
+		}
+
+		//2. saving rng state
+		filename.clear();
+		filename = savedir;
+		filename += "/rngstate";
+		filename += std::to_string(time);
+		filename += ".bin";
+		//std::ofstream rngout(filename, std::ios::out | std::ios::binary);
+
+		if(randomszam_mentes(filename.c_str(), r)) {
+			std::cerr << "ERROR: Could not open file for saving random number generator state!" << std::endl;
+			return 3;
+		}
 
 		return 0;
 	}
