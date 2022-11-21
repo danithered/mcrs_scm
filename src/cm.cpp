@@ -127,6 +127,11 @@ namespace cmdv {
 		int number_of_new = leftover; //number is an integer, float part will be used in next round
 		leftover -= number_of_new; //leftover contains that part of metabolism that is not used in this round
 
+		if(number_of_new > reps.size()){
+			std::cerr << "Number of new replicas (" << number_of_new << ") is higher than number of replicators (" << reps.size() << ")!" << std::endl;
+			number_of_new = reps.size();
+		}
+
 		if(number_of_new){
 			double sum=0;
 			int size_origin = reps.size();
