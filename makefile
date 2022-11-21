@@ -7,11 +7,12 @@ SRCDIR=./src
 CC=g++
 C=gcc
 
-#CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -ggdb -fexceptions -Wall -pg # for testing
 #CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -O3 # for stuff
+#LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp
+
+CFLAGST=-I$(IDIR) `pkg-config --cflags gsl` -pthread -I/home/danielred/packages -I/home/danielred/packages/ViennaRNA -lboost_system -lboost_serialization -ggdb -fexceptions -Wall -pg # for testing
 CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` -O3 -pthread -I/home/danielred/packages -I/home/danielred/packages/ViennaRNA -lboost_system -lboost_serialization # for stuff with RNAfold 2.1.5
 
-#LIBS=-lm `pkg-config --libs gsl` `pkg-config --libs RNAlib2` -fopenmp
 LIBS=-lm `pkg-config --libs gsl` -L/home/danielred/packages/ViennaRNA/lib -fno-lto -Wl,-fno-lto -lRNA -fopenmp -lgsl -lgslcblas -lpthread -lstdc++ -fopenmp # for RNAlib 2.1.5
 
 _DEPS = randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h 
@@ -36,6 +37,7 @@ _OBJ_randseq = randseq.o randomgen.o rnarep.o annot.o parameters.o dv_tools.o
 OBJ_randseq = $(patsubst %,$(ODIR)/%,$(_OBJ_randseq))
 
 
+
 $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
@@ -44,6 +46,12 @@ $(ODIR)/%.o: $(SRCDIR)/%.c $(DEPS)
 
 $(PROGNAME): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+.PHONY: gdb
+gdb: debug
+gdb: CFLAGS=$(CFLAGST)
+debug: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGST) $(LIBS)
 
 .PHONY: clean
 
