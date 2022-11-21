@@ -2,24 +2,24 @@
 
 # general settings
 
-maxnum=10 #maximal number of threads used
-par_ID=spattest
+maxnum=20 #maximal number of threads used
+par_ID=A7test
 no_repeats=1
 
 #parameter settings
-par_noEA=3
+par_noEA=7
 par_maxtime=100
-par_num_input_content=(5 10 20)
+par_num_input_content=(10 20)
 par_MN=(5 10 20)
-par_poolsize=(100 300)
-par_splitfrom=(25 50)
+par_poolsize=(100)
+par_splitfrom=(25 50 100)
 par_rangePdeg=
 par_minPdeg=
 par_flexPdeg=
 par_output_interval=1
 par_save_interval=1000
 par_seed=
-par_str_pool=IN/str/mappingA3.txt
+par_str_pool=IN/str/mappingA7.txt
 par_outdir=
 par_output_filename=
 par_savedir=

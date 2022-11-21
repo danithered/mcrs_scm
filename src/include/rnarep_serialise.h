@@ -73,7 +73,7 @@ namespace boost { namespace serialization {
 BOOST_SERIALIZATION_SPLIT_FREE(rnarep::CellContent)
 
 //declare version
-//BOOST_CLASS_VERSION(rnarep::CellContent, 1)
+BOOST_CLASS_VERSION(rnarep::CellContent, 1)
 
 #endif
 

@@ -44,7 +44,7 @@ namespace boost { namespace serialization {
 
 
 		ar	<< BOOST_SERIALIZATION_NVP(sim.size)
-			<< BOOST_SERIALIZATION_NVP(sim.time);
+			<< boost::serialization::make_nvp("time", sim.time);
 
 		//add comparts
 		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));

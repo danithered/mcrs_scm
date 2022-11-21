@@ -669,8 +669,8 @@ namespace cmdv {
 
 			//saving content
 			assert(out.good());
-//			boost::archive::xml_oarchive oa(out);
-//			oa << BOOST_SERIALIZATION_NVP(*this);
+			boost::archive::xml_oarchive oa(out);
+			oa << boost::serialization::make_nvp("mcrscm", *this);
 
 		}
 
