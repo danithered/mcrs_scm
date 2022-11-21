@@ -15,6 +15,7 @@ namespace cmdv {
 	}
 
 	int Compart::split(){
+		while(reps.size() > (unsigned int) par_splitfrom) {
 		//Compart *target = parent->get(this); //choose a random cell
 		//give it to temp
 		Compart *target = *( parent->temp_comparts + (parent->used_temp)++ );
@@ -32,6 +33,7 @@ namespace cmdv {
 		}
 
 		target->sleep();
+		target->split();
 		
 		//target->updateable = false;
 		
@@ -40,7 +42,7 @@ namespace cmdv {
 		 * consider it a price for splitting */
 		leftover = 0;
 		//target->leftover = 0; it is handled in clear()
-
+		}
 		return(0);
 
 	}
@@ -127,10 +129,10 @@ namespace cmdv {
 		int number_of_new = leftover; //number is an integer, float part will be used in next round
 		leftover -= number_of_new; //leftover contains that part of metabolism that is not used in this round
 
-		if(number_of_new > reps.size()){
+		/*if(number_of_new > reps.size()){
 			std::cerr << "Number of new replicas (" << number_of_new << ") is higher than number of replicators (" << reps.size() << ")!" << std::endl;
 			number_of_new = reps.size();
-		}
+		}*/
 
 		if(number_of_new){
 			double sum=0;
@@ -201,7 +203,7 @@ namespace cmdv {
 				}
 
 				//splitting
-				if(reps.size() > (unsigned int) par_splitfrom) split();
+				split();
 			}
 		//}
 	}
