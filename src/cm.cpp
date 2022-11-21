@@ -19,6 +19,10 @@ namespace cmdv {
 		//Compart *target = parent->get(this); //choose a random cell
 		//give it to temp
 		Compart *target = *( parent->temp_comparts + (parent->used_temp)++ );
+		if(parent->used_temp > parent->size * 10) {
+			std::cerr << "Too much temp_comparts used, going to seqfault" << std::endl;
+			return (-1);
+		}
 						     
 		std::list<rnarep::CellContent> *targetreps = &(target->reps);
 

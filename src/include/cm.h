@@ -120,7 +120,7 @@ namespace cmdv {
 				}
 
 				//maximum number of new comparts is equal to number of comparts
-				temp_comparts = new class Compart* [size];
+				temp_comparts = new class Compart* [size*10];
 				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size; comp != endcomp; comp++){
 					*comp = new class Compart;
 					(*comp)->parent = this;
