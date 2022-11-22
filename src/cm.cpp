@@ -16,36 +16,36 @@ namespace cmdv {
 
 	int Compart::split(){
 		while(reps.size() > (unsigned int) par_splitfrom) {
-		//Compart *target = parent->get(this); //choose a random cell
-		//give it to temp
-		Compart *target = *( parent->temp_comparts + (parent->used_temp)++ );
-		if(parent->used_temp > parent->size * 10) {
-			std::cerr << "Too much temp_comparts used, going to seqfault" << std::endl;
-			return (-1);
-		}
-						     
-		std::list<rnarep::CellContent> *targetreps = &(target->reps);
+			//Compart *target = parent->get(this); //choose a random cell
+			//give it to temp
+			Compart *target = *( parent->temp_comparts + (parent->used_temp)++ );
+			if(parent->used_temp > parent->size * 10) {
+				std::cerr << "Too much temp_comparts used, going to seqfault" << std::endl;
+				return (-1);
+			}
+							     
+			std::list<rnarep::CellContent> *targetreps = &(target->reps);
 
-		target->clear(); //kill cell - it was killed in compartShower
-		
-		//hypergeometric
-		for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
-			temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
-			if(gsl_rng_uniform(r) < 0.5) {
-				targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
-			} 
-		}
+			target->clear(); //kill cell - it was killed in compartShower
+			
+			//hypergeometric
+			for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
+				temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
+				if(gsl_rng_uniform(r) < 0.5) {
+					targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
+				} 
+			}
 
-		target->sleep();
-		target->split();
-		
-		//target->updateable = false;
-		
-		/*clear leftover
-		 * it would be unfair to inherit something from a metabolism with a possibly completely different composition 
-		 * consider it a price for splitting */
-		leftover = 0;
-		//target->leftover = 0; it is handled in clear()
+			target->sleep();
+			target->split();
+			
+			//target->updateable = false;
+			
+			/*clear leftover
+			 * it would be unfair to inherit something from a metabolism with a possibly completely different composition 
+			 * consider it a price for splitting */
+			leftover = 0;
+			//target->leftover = 0; it is handled in clear()
 		}
 		return(0);
 
