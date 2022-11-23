@@ -12,6 +12,7 @@ namespace cmdv {
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		leftover = 0; //so it did not inherits lost compartments metabolism
+		M(); //to refresh alive no_alive and no_replicators according to awake
 	}
 
 	int Compart::split(){
@@ -112,12 +113,12 @@ namespace cmdv {
 		}
 		
 		//update alive and no_alive
-		if(alive != (bool) M){ //it has changed
-			if(M){ //new state is alive
-				if(!alive && awake) no_alive++;
+		if(alive != (bool) M){ //it has changed and...
+			if(M){ // ...new state is alive
+				if(awake) no_alive++;
 				alive=true;
-			} else { //new state is dead
-				if(alive && awake) no_alive--;
+			} else { // ...new state is dead
+				if(awake) no_alive--;
 				alive=false;
 			}
 		}
