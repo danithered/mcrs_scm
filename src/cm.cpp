@@ -182,9 +182,9 @@ namespace cmdv {
 	void Compart::sleep(){
 		if(awake){
 			awake = false;
-			if(M() > 0.0) {
-				no_alive--;
-			}
+			//if(M() > 0.0) {
+			//	no_alive--;
+			//}
 			rnarep::CellContent::no_replicators -= reps.size();
 		}
 	}
@@ -192,7 +192,7 @@ namespace cmdv {
 	void Compart::wake(){
 		if(!awake){
 			awake = true;
-			if(alive) no_alive++; // M() has been run at sleep()
+			//if(alive) no_alive++; // M() has been run at sleep()
 			rnarep::CellContent::no_replicators += reps.size();
 		}
 	}
