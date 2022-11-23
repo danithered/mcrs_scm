@@ -115,10 +115,10 @@ namespace cmdv {
 		//update alive and no_alive
 		if(alive != (bool) M){ //it has changed and...
 			if(M){ // ...new state is alive
-				if(awake) no_alive++;
+				no_alive++;
 				alive=true;
 			} else { // ...new state is dead
-				if(awake) no_alive--;
+				no_alive--;
 				alive=false;
 			}
 		}
