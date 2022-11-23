@@ -114,10 +114,10 @@ namespace cmdv {
 		//update alive and no_alive
 		if(alive != (bool) M){ //it has changed
 			if(M){ //new state is alive
-				if(!alive) no_alive++;
+				if(!alive && awake) no_alive++;
 				alive=true;
 			} else { //new state is dead
-				if(alive) no_alive--;
+				if(alive && awake) no_alive--;
 				alive=false;
 			}
 		}
@@ -179,15 +179,21 @@ namespace cmdv {
 	}
 
 	void Compart::sleep(){
-		if(M() > 0.0) {
-			no_alive--;
+		if(awake){
+			awake = false;
+			if(M() > 0.0) {
+				no_alive--;
+			}
+			rnarep::CellContent::no_replicators -= reps.size();
 		}
-		rnarep::CellContent::no_replicators -= reps.size();
 	}
 
 	void Compart::wake(){
-		if(alive) no_alive++; // M() has been run at sleep()
-		rnarep::CellContent::no_replicators += reps.size();
+		if(!awake){
+			awake = true;
+			if(alive) no_alive++; // M() has been run at sleep()
+			rnarep::CellContent::no_replicators += reps.size();
+		}
 	}
 
 	void Compart::update(){

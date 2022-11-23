@@ -21,6 +21,7 @@ namespace boost { namespace serialization {
 		ar	& BOOST_SERIALIZATION_NVP(cell.reps);
 		ar	//& BOOST_SERIALIZATION_NVP(cell.updateable)
 			& BOOST_SERIALIZATION_NVP(cell.alive)
+			& BOOST_SERIALIZATION_NVP(cell.awake)
 			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA)
 			& BOOST_SERIALIZATION_NVP(cell.leftover);
 

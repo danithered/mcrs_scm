@@ -29,6 +29,7 @@ namespace cmdv {
 			class CompartPool *parent;
 			//bool updateable;
 			bool alive;
+			bool awake; 
 			static unsigned int no_alive;
 
 			//Functions
@@ -36,6 +37,7 @@ namespace cmdv {
 			Compart(){
 				parent = NULL;
 				alive=false;
+				awake=true;
 				//metabolism = 0;
 				leftover = 0;
 				//updateable = true;
