@@ -11,7 +11,7 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.4.2 parametrised pool, daycare, corrected no_alive no_replicators\0";
+const char versioninfo[255] = "ver 2.5 splitting untill all children are under splitsize\0";
 
 extern int par_noEA;
 

@@ -5,7 +5,7 @@ namespace cmdv {
 	//int no_births=0;
 	//int no_deaths=0;
 	
-	unsigned int Compart::no_alive;
+	unsigned int Compart::no_alive = 0;
 
 	std::list<rnarep::CellContent> Compart::wastebin;
 
@@ -36,8 +36,8 @@ namespace cmdv {
 				} 
 			}
 
-			target->sleep();
 			target->split();
+			target->sleep();
 			
 			//target->updateable = false;
 			
