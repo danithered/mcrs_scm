@@ -50,6 +50,8 @@ namespace boost { namespace serialization {
 		//add comparts
 		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
 
+		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_splits);
+
 	}
 
 	template<class Archive>
@@ -70,7 +72,7 @@ namespace boost { namespace serialization {
 
 //declare version
 BOOST_CLASS_VERSION(cmdv::Compart, 1)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 1)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 2)
 
 #endif
 
