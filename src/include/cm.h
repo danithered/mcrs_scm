@@ -102,6 +102,7 @@ namespace cmdv {
 			Compart **comparts;
 			std::vector<Compart *> temp_comparts;
 			unsigned int used_temp;
+			unsigned int no_last_splits;
 			
 			std::string savedir;
 
@@ -111,7 +112,7 @@ namespace cmdv {
 			//FUNCTIONS
 
 			//Constructor 1
-			CompartPool(int _size=300): size(_size), used_temp(0){
+			CompartPool(int _size=300): size(_size), used_temp(0), no_last_splits(0){
 				time=0;
 				//saving_freq = 0;
 

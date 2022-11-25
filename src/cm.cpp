@@ -328,6 +328,7 @@ namespace cmdv {
 
 			delete [] (order);
 
+			no_last_splits = used_temp;
 			used_temp = 0;
 		}
 	}
@@ -507,7 +508,7 @@ namespace cmdv {
 		}
 
 		//adding header to output
-		output << "time;replicators;no_alive;mean_M;sd_M";
+		output << "time;replicators;no_alive;no_last_splits;mean_M;sd_M";
 		output << ";no_par;mean_R_par;mean_length_par;mean_mfe_par" ;
 		for(int e = 0; e < par_noEA; e++){
 			output << ";no_enz" << e << ";mean_R_enz" << e << ";mean_length_enz" << e << ";mean_mfe_enz" << e << ";mean_a_enz" << e ;
@@ -629,6 +630,7 @@ namespace cmdv {
 		output << time << ';' 						//time
 			<< rnarep::CellContent::no_replicators << ';' 		//no_replicators
 			<< Compart::no_alive << ';' 				//no_alive
+			<< no_last_splits << ';' 				
 			<< (Compart::no_alive?(sum_M/(double)Compart::no_alive):0) << ';' 		//mean_M
 			<< dvtools::sd(Compart::no_alive, sum_M, sum_M2);	//sd_M
 		///Replicator level variables
