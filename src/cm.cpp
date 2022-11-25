@@ -19,11 +19,11 @@ namespace cmdv {
 		while(reps.size() > (unsigned int) par_splitfrom) {
 			//Compart *target = parent->get(this); //choose a random cell
 			//give it to temp
-			Compart *target = *( parent->temp_comparts + (parent->used_temp)++ );
-			if(parent->used_temp > parent->size * 10) {
-				std::cerr << "Too much temp_comparts used, going to seqfault" << std::endl;
-				return (-1);
+			if(parent->used_temp == parent->temp_comparts.size()) {
+				parent->temp_comparts.push_back(new class Compart);
+				parent->temp_comparts.back()->parent = parent;
 			}
+			Compart *target = parent->temp_comparts[ (parent->used_temp)++ ];
 							     
 			std::list<rnarep::CellContent> *targetreps = &(target->reps);
 

@@ -1,10 +1,14 @@
 *.swp
 nohup.out
 mcrscm
+debug
+simulation
 src/obj/
 IN/mapping_*
 IN/param_*
 IN/str/*/randseqs*
 OUT/*
 *.tmp
-
+*.html
+.RData
+.Rhistory

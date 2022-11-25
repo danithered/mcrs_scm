@@ -100,7 +100,7 @@ namespace cmdv {
 			//int no_replicators;
 
 			Compart **comparts;
-			Compart **temp_comparts;
+			std::vector<Compart *> temp_comparts;
 			unsigned int used_temp;
 			
 			std::string savedir;
@@ -119,14 +119,19 @@ namespace cmdv {
 				for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
 					*comp = new class Compart;
 					(*comp)->parent = this;
+
+					// add temp comparts too
+					temp_comparts.push_back(new class Compart);
+					temp_comparts.back()->parent = this;
 				}
 
 				//maximum number of new comparts is equal to number of comparts
-				temp_comparts = new class Compart* [size*10];
-				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size*10; comp != endcomp; comp++){
-					*comp = new class Compart;
-					(*comp)->parent = this;
-				}
+//				temp_comparts = new class Compart* [size*10];
+//				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size*10; comp != endcomp; comp++){
+//					*comp = new class Compart;
+//					(*comp)->parent = this;
+//				}
+				
 
 				//no_replicators = 0;
 
@@ -141,10 +146,12 @@ namespace cmdv {
 				if(size) {
 					for(unsigned int i = 0; i < size; ++i ){
 						delete comparts[i];
-						delete temp_comparts[i];
+					}
+					for(auto tc = temp_comparts.begin(); tc != temp_comparts.end(); ++tc){
+						delete *tc;
 					}
 					delete [] (comparts);
-					delete [] (temp_comparts);
+					//delete [] (temp_comparts);
 				}
 //				std::cout << "Deconstructor Called" << std::endl;
 			}
