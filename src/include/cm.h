@@ -27,37 +27,18 @@ namespace cmdv {
 			std::list<class rnarep::CellContent> reps;
 
 			class CompartPool *parent;
-			//bool updateable;
 			bool alive;
 			bool awake; 
 			static unsigned int no_alive;
 
 			//Functions
 			//Compart base functions
-			Compart(){
-				parent = NULL;
-				alive=false;
-				awake=true;
-				//metabolism = 0;
-				leftover = 0;
-				//updateable = true;
-				reciproc_noEA = 1 / (double) par_noEA;
-			}
+			Compart();
 
-			~Compart(){
-				//for(auto repdel = reps.begin(); repdel != reps.end(); repdel++) delete *repdel;
-				//for(auto repdel = wastebin.begin(); repdel != wastebin.end(); repdel++) delete *repdel;
-				
-			}
+			~Compart(){}
 
 			///owerwrite one compart with other
-			void operator =(Compart& origin){
-				clear();
-				//for(auto rep = origin.reps.begin(); rep != origin.reps.end(); rep++){
-					reps.assign( origin.reps.begin(), origin.reps.end() ); 
-				//}
-				//no need to delete temp_compart, split() will do that anyway...
-			}
+			void operator =(Compart& origin);
 
 			//add replicator
 			std::list<rnarep::CellContent>::iterator add(rnarep::CellContent rep);
@@ -112,52 +93,13 @@ namespace cmdv {
 			//FUNCTIONS
 
 			//Constructor 1
-			CompartPool(int _size=300): size(_size), used_temp(0), no_last_splits(0){
-				time=0;
-				//saving_freq = 0;
-
-				comparts = new class Compart* [size];
-				for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
-					*comp = new class Compart;
-					(*comp)->parent = this;
-
-					// add temp comparts too
-					temp_comparts.push_back(new class Compart);
-					temp_comparts.back()->parent = this;
-				}
-
-				//maximum number of new comparts is equal to number of comparts
-//				temp_comparts = new class Compart* [size*10];
-//				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size*10; comp != endcomp; comp++){
-//					*comp = new class Compart;
-//					(*comp)->parent = this;
-//				}
-				
-
-				//no_replicators = 0;
-
-//				std::cout << "Basic Constructor Called" << std::endl;
-			}
+			CompartPool(int _size=300);
 			
 			//Constructor 2 - for deserialisation
 			CompartPool() {}
 			
 			//Destructor
-			~CompartPool(){
-				if(size) {
-					for(unsigned int i = 0; i < size; ++i ){
-						delete comparts[i];
-					}
-					for(auto tc = temp_comparts.begin(); tc != temp_comparts.end(); ++tc){
-						delete *tc;
-					}
-					delete [] (comparts);
-					//delete [] (temp_comparts);
-				}
-//				std::cout << "Deconstructor Called" << std::endl;
-			}
-			
-			//virtual void Update(int cell);
+			~CompartPool();
 			
 			//Operators
 			
@@ -165,43 +107,21 @@ namespace cmdv {
 			//Functions
 			
 			///gives back pointer to nth comp
-			inline Compart* get(int cell) {
-				return( *(comparts + cell) );
-			}
+			inline Compart* get(int cell);
 
 			///gives back pointer to random comp
-			inline Compart** get() {
-				return( comparts + gsl_rng_uniform_int(r, size) );
-			}
+			inline Compart** get();
 			
 			///gives back pointer to random comp (excluded arg)
-			inline Compart* get(Compart *except) {
-				if(size < 2) return NULL;
-
-				int n = (int) (except - *comparts);
-				return( *(comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) % size) );
-
-				/*compart* out = comparts + gsl_rng_uniform_int(r, size);
-				while(except == out) comparts + gsl_rng_uniform_int(r, size);
-				return(out);*/
-			}
-			
-			///initialises matrix with predefined values, randomly
-			//void init(std::string* pool, double* probs, int no_choices); 
+			inline Compart* get(Compart *except);
 			
 			///initialises matrix from textfile
 			void init_fromfile(char * infile); 
 
 			//bool compartFromFile(const char * infile);
 			
-			//clear updateable flag
-			//void all_updateable();
-			
 			//Updates
 
-			///One update step - DOES NOT WORK
-			//int updateStep(int cell);
-			
 			// Throwing back comparts from temp
 			void compartShower();
 

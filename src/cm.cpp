@@ -9,6 +9,24 @@ namespace cmdv {
 
 	std::list<rnarep::CellContent> Compart::wastebin;
 
+	Compart::Compart(){
+		parent = NULL;
+		alive=false;
+		awake=true;
+		//metabolism = 0;
+		leftover = 0;
+		//updateable = true;
+		reciproc_noEA = 1 / (double) par_noEA;
+	}
+
+	void Compart::operator =(Compart& origin){
+		clear();
+		//for(auto rep = origin.reps.begin(); rep != origin.reps.end(); rep++){
+			reps.assign( origin.reps.begin(), origin.reps.end() ); 
+		//}
+		//no need to delete temp_compart, split() will do that anyway...
+	}
+
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		leftover = 0; //so it did not inherits lost compartments metabolism
@@ -219,19 +237,6 @@ namespace cmdv {
 		//}
 	}
 
-	///initialises matrix with predefined values, randomly
-	/*void CompartPool::init(std::string *pool, double* probs, int no_choices) {
-		int i = 0;
-		double sum = 0.0;
-		
-		for(i=0; i < no_choices; i++) {
-			sum += probs[i];
-		}
-		for(i=0; i < size; i++) {
-			*(matrix[i].vals) = pool[dvtools::brokenStickVals(probs, no_choices, sum, gsl_rng_uniform(r) )];
-		}
-	}*/	
-
 //	bool CompartPool::compartFromFile(const char * infile){
 //		//std::string line, word;
 //		std::ifstream file(infile);
@@ -244,6 +249,33 @@ namespace cmdv {
 //
 //		return true;
 //	}
+
+	CompartPool::CompartPool(int _size): size(_size), used_temp(0), no_last_splits(0){
+		time=0;
+		//saving_freq = 0;
+
+		comparts = new class Compart* [size];
+		for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
+			*comp = new class Compart;
+			(*comp)->parent = this;
+
+			// add temp comparts too
+			temp_comparts.push_back(new class Compart);
+			temp_comparts.back()->parent = this;
+		}
+
+		//maximum number of new comparts is equal to number of comparts
+//				temp_comparts = new class Compart* [size*10];
+//				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size*10; comp != endcomp; comp++){
+//					*comp = new class Compart;
+//					(*comp)->parent = this;
+//				}
+		
+
+		//no_replicators = 0;
+
+//				std::cout << "Basic Constructor Called" << std::endl;
+	}
 
 	void CompartPool::init_fromfile(char *infile) {
 		std::string line, word;
@@ -264,18 +296,39 @@ namespace cmdv {
 
 	}
 
-	//a singel update step <- this is called by rUpdate and oUpdate
-	/*int CompartPool::updateStep(int cell){
-		matrix[cell].update();
-		return(0);
-	}*/
-
-	/*void CompartPool::all_updateable(){
-		Compart *comp = comparts;
-		for(int countdown = size; countdown--; comp++){
-			if(!comp->updateable) comp->updateable = true;
+	CompartPool::~CompartPool(){
+		if(size) {
+			for(unsigned int i = 0; i < size; ++i ){
+				delete comparts[i];
+			}
+			for(auto tc = temp_comparts.begin(); tc != temp_comparts.end(); ++tc){
+				delete *tc;
+			}
+			delete [] (comparts);
+			//delete [] (temp_comparts);
 		}
-	}*/
+//				std::cout << "Deconstructor Called" << std::endl;
+	}
+
+	inline Compart* CompartPool::get(int cell) {
+		return( *(comparts + cell) );
+	}
+
+	///gives back pointer to random comp
+	inline Compart** CompartPool::get() {
+		return( comparts + gsl_rng_uniform_int(r, size) );
+	}
+
+	inline Compart* CompartPool::get(Compart *except) {
+		if(size < 2) return NULL;
+
+		int n = (int) (except - *comparts);
+		return( *(comparts + (n + gsl_rng_uniform_int(r, size-1) + 1) % size) );
+
+		/*compart* out = comparts + gsl_rng_uniform_int(r, size);
+		while(except == out) comparts + gsl_rng_uniform_int(r, size);
+		return(out);*/
+	}
 
 	void CompartPool::compartShower(){
 		unsigned int *order, numtemp = used_temp;
