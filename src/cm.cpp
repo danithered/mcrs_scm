@@ -28,7 +28,7 @@ namespace cmdv {
 	}
 
 	void Compart::clear(){
-		if(!awake) wake(); //to count properly, dormant cells have to be awaken
+		wake(); //to count properly, dormant cells have to be awaken
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		leftover = 0; //so it did not inherits lost compartments metabolism
 		M(); //to refresh alive no_alive and no_replicators according to awake
