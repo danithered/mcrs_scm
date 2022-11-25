@@ -362,8 +362,8 @@ namespace cmdv {
 					*random_comp = tempc; // comparts <- tempc
 					
 					// kill compart in temp
-					//temp_comparts[ temp ]->clear(); 
-					temp_comparts[ temp ]->sleep(); //tell compart that had been "written over" to fall asleep
+					temp_comparts[ temp ]->clear(); 
+					//temp_comparts[ temp ]->sleep(); //tell compart that had been "written over" to fall asleep
 				}
 				else { //it would change with itself so no change at all
 				       //do the stuff
@@ -374,8 +374,8 @@ namespace cmdv {
 					*random_comp = tempc; // comparts <- tempc
 
 					// kill compart in temp
-					//temp_comparts[ order[iter] ]->clear(); 
-					temp_comparts[ order[iter] ]->sleep(); //tell compart that had been "written over" to fall asleep
+					temp_comparts[ order[iter] ]->clear(); 
+					//temp_comparts[ order[iter] ]->sleep(); //tell compart that had been "written over" to fall asleep
 				}
 				(*random_comp)->wake();
 			}
