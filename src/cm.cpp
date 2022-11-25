@@ -28,6 +28,7 @@ namespace cmdv {
 	}
 
 	void Compart::clear(){
+		if(!awake) wake(); //to count properly, dormant cells have to be awaken
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		leftover = 0; //so it did not inherits lost compartments metabolism
 		M(); //to refresh alive no_alive and no_replicators according to awake
@@ -225,7 +226,7 @@ namespace cmdv {
 				//DEGRADATION
 				for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
 					temp_rep = rep++; //to keep rep in the range of reps 
-					if(rep->Pdeg > gsl_rng_uniform(r) ) {
+					if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
 //						no_deaths++;
 						die(temp_rep);
 					}
