@@ -379,12 +379,11 @@ namespace cmdv {
 				}
 				(*random_comp)->wake();
 			}
-
 			delete [] (order);
-
-			no_last_splits = used_temp;
-			used_temp = 0;
 		}
+
+		no_last_splits = used_temp;
+		used_temp = 0;
 	}
 
 	///Random update
