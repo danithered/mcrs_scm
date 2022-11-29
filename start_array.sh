@@ -9,10 +9,10 @@ no_repeats=1
 #parameter settings
 par_noEA=7
 par_maxtime=100
-par_num_input_content=(10 25)
+par_num_input_content=(50)
 par_MN=20
 par_poolsize=(100)
-par_splitfrom=(25 50 100)
+par_splitfrom=(150 100)
 par_rangePdeg=
 par_minPdeg=
 par_flexPdeg=

@@ -106,15 +106,12 @@ namespace cmdv {
 			reps.splice(reps.begin(), wastebin, wastebin.begin() );
 		}
 
-//		if(newseq.size() < 1){
-//			std::cerr << "Warning: Compart::add(string): Something went wrong" << std::endl;
-//		}
-//
+//		if(newseq.size() < 1) std::cerr << "Warning: Compart::add(string): Something went wrong" << std::endl;
+
 		//add new value
 		reps.front() = newseq;
-
-		//annotate
-		//reps.front().annotate(); // operator= handles it itself 
+		
+		if (reps.front().seq.length() == 0) std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
 
 		return(reps.begin());
 	}

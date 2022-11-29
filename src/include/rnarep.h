@@ -117,17 +117,21 @@ namespace rnarep {
 			}
 
 			void operator =( std::string& templ){
-//				std::cout << "CellContent assignment from templ " << templ << " on empty (" << empty << ") cell.\n";				
 				die(); // !empty is checked in die()
 
 				//check if new seq is ok
-				if(templ.length() && (templ != "N") && (templ != "0") ){ //length is not zero AND seq is not "N" or "0"
-					seq = templ;
-					//if(seq.length()) 
-					annotate();
-//					std::cout << "added new replicator " << seq << std::endl;
+				for(auto & letter : templ) if(letter != 'A' && letter != 'U' && letter != 'G' && letter != 'C' && letter != 'a' && letter != 'u' && letter != 'g' && letter != 'c'){
+					if( (templ != "N") && (templ != "0") ) std::cerr 
+						<< "WARNING: rnarep::CellContent::operator = (string): Invalid character (" << letter 
+						<< ") found in input sequence " << templ
+						<< ". Empty string will be used intead." << std::endl;
+					templ.clear();
+					break;
 				}
-//				else std::cout << "cell stayed empty" << std::endl;
+				if(templ.length() ){ //length is not zero
+					seq = templ;
+					annotate();
+				}
 			}
 
 			void die();

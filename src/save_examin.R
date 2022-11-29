@@ -1,4 +1,5 @@
 # Load the library xml2
+library(XML)
 library(xml2)# Read the xml file
 
 #Functions
@@ -20,7 +21,8 @@ children <- function(node){
 
 # Get data
 
-data= read_xml('/home/danielred/data/programs/mcrs_to_scm/OUT/test/SAVE/c0.xml')
+data= read_xml('/home/danielred/data/programs/mcrs_to_scm/OUT/A7retest.4_4/SAVE/30.xml')
+#data= read_xml('/home/danielred/data/programs/mcrs_to_scm/OUT/test/SAVE/c0.xml')
 d <- xml_child(data, 1) # mooving to mcrscm
 
 time <- get_child(d, "time", "int")
@@ -32,16 +34,19 @@ cells <- get_child(d, "cells")
 table <- do.call(rbind, lapply(1:xml_length(cells), function(no_cell){
   cell <- xml_child(cells, no_cell)
 
-  list( alive = get_child(cell, "cell.alive", "logical"),
+  out <- as.data.frame(list( alive = get_child(cell, "cell.alive", "logical"),
         leftover = get_child(cell, "cell.leftover", "double"),
         M = get_child(cell, "metabolism", "double"),
-        no_reps = get_child(cell, "cell.reps") |> get_child("count", "int"),
-        reps = get_child(cell, "cell.reps")
-  )
+        no_reps = get_child(cell, "cell.reps") |> get_child("count", "int")#,
+        #reps = get_child(cell, "cell.reps")
+  ))
+  out$reps <- list(get_child(cell, "cell.reps"))
+  out
 }))
+table |> class()
 
 # examine reps
-reps = table[1,]$reps
+reps = table[76,]$reps[[1]]
 
 rep_table = do.call(rbind, lapply(which(children(reps) == "item"), function(rnum){
   rep <- xml_child(reps, rnum)
@@ -60,7 +65,8 @@ rep_table = do.call(rbind, lapply(which(children(reps) == "item"), function(rnum
   for(a in 1:xml_length(acts)){
     out[[paste0("act", a)]] <- xml_double(xml_child(acts, a))
   }
-  return(out)
+  return(as.data.frame(out))
 }))
 
-rep_table
+hist(rep_table$mfe)
+
