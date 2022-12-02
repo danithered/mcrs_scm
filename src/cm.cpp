@@ -111,7 +111,10 @@ namespace cmdv {
 		//add new value
 		reps.front() = newseq;
 		
-		if (reps.front().seq.length() == 0) std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
+		if (reps.front().seq.length() == 0) {
+			std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
+			die(reps.begin());
+		}
 
 		return(reps.begin());
 	}
