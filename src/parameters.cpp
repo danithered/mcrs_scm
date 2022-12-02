@@ -95,7 +95,7 @@ int paramsToFile(const char* filename){
 	paramfile << "par_poolsize " << par_poolsize << std::endl;
 	paramfile << "par_splitfrom " << par_splitfrom << std::endl;
 	paramfile << "par_MN " << par_MN << std::endl;
-	//paramfile << "par_nrow " << par_nrow << std::endl;
+	paramfile << "par_num_input_content " << par_num_input_content << std::endl;
 	paramfile << "par_output_interval " << par_output_interval << std::endl;
 	paramfile << "par_save_interval " << par_save_interval << std::endl;
 	paramfile << "par_seed " << par_seed << std::endl;

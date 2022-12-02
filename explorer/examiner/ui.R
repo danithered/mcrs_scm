@@ -13,9 +13,8 @@ shinyUI(fluidPage(
              dataTableOutput("table"),
              plotlyOutput("plot")
       ),
-      column(6, style="position:static;background-color:lightblue",
+      column(4, style="position:static;background-color:lightblue",
              h4("Cell"),
-             dataTableOutput("reps"),
              tabsetPanel(
                tabPanel("MFE", plotOutput("hist_mfe")),
                tabPanel("Pfold", plotOutput("hist_Pfold")),
@@ -26,11 +25,20 @@ shinyUI(fluidPage(
              ),
              plotOutput("nice")
       ),
-      column(2,
+      column(4,
              h4("Replicator"),
-             plotOutput("replicator"),
-             textOutput("seq"),
-             textOutput("str")
+             dataTableOutput("reps"),
+             tabsetPanel(
+              tabPanel("activities", 
+                plotOutput("replicator"),
+                plotOutput("acts")
+              ),
+              tabPanel("properties",
+                       textOutput("seq"),
+                       textOutput("str"),
+                       tableOutput("rep_props")       
+              )
+             )
       )
     ))
 )))

@@ -6,6 +6,8 @@ library(plotly)
 library(RColorBrewer)
 library(RRNA)
 library(plotrix)
+library(dplyr)
+library(Polychrome)
 
 #Functions
 dirto <- function(to, from=c(0,0)){
@@ -21,6 +23,7 @@ addToPlot <- function(x=0, y=0, coords,
                       main_con=NA, side_con=NA, 
                       add_letter=F, cex_letter=par("cex"), col_letter="black", col=NULL,
                       ...){
+  par(bg="transparent")
   #rotate
   if(!is.na(rot)){
     midx <- mean(coords$x)
@@ -120,6 +123,22 @@ plot_RNA <- function(coords, ...){
   plot.window(asp=1, xlim=c(0,1), ylim=c(0,1), xpd=NA)
   addToPlot(0,0,coords, xspan=1, ...)
 }
+plot_acts <- function(a1, a2, col="grey"){
+  length =max(length(a1), length(a2)) 
+  if(length(a1) < length) a1 <- c(unlist(a1), rep(0, length-length(a1)))
+  if(length(a2) < length) a2 <- c(unlist(a2), rep(0, length-length(a2)))
+  plot.new()
+  plot.window(asp=1, xlim=c(0,length), ylim=c(0,1), xpd=NA)
+  rect(0:(length-1), 0, 1:length,1, 
+       col = ifelse( rep(is.logical(a2), length), ifelse(a2, col, "white"), ifelse(a2 == 0, "white", alpha(col, a1/max(a1)))))
+  rect(0:(length-1), 1.5, 1:length,2.5, 
+       col = ifelse( rep(is.logical(a1), length), ifelse(a1, col, "white"), ifelse(a1 == 0, "white", alpha(col, a1/max(a1)))))
+  if(!is.logical(a1)) text(1:length-0.5, 2, labels = round(a1, 2) )
+  if(!is.logical(a2)) text(1:length-0.5, 0.5, labels = round(a2, 2) )
+  text(mean(c(0, length) ), 2.75, "Current strand")
+  text(mean(c(0, length) ), 1.25, "Complementary strand")
+}
+
 find_activity <- function(repl, coords, rules){
   startofPattern <- list()
   for(rule in rules){
@@ -241,6 +260,27 @@ type2A <- Vectorize(function(x){
   return( length(acts) )
   
 })
+type2vec <- (function(x, no=1){
+  if(x==0) return(rep(F, no))
+  if(x==-1) return(NA)
+  
+  m <- ceiling(log(x,2))
+  acts <- c()
+  
+  for(i in m:0){
+    if(x %/% 2^i != 0){
+      acts <- c(acts, i)
+      x <- x-2^i
+      if(x == 0) break
+    }
+  }
+  
+  acts <- acts+1
+  out <- rep(F, max(no, acts))
+  out[acts] <- T
+  
+  return(out)
+})
 
 enzN <- Vectorize(function(x, as.text=F){
   if(x==0) return("parazite")
@@ -257,8 +297,8 @@ enzN <- Vectorize(function(x, as.text=F){
     }
   }
   
-  if(as.text) return( paste0("E[", paste(sort(acts), collapse = ","), "]") )
-  return( as.expression(bquote(E[.(paste(sort(acts), collapse = ","))])) )
+  if(as.text) return( paste0("E[", paste(sort(acts+1), collapse = ","), "]") )
+  return( as.expression(bquote(E[.(paste(sort(acts+1), collapse = ","))])) )
 })
 # Get data
 
@@ -281,12 +321,22 @@ shinyServer(function(input, output) {
     
     ## UI
     output$reports <- renderUI({
-      selectizeInput("file",
-                     label = "Which report would you like to see?",
-                     #selectize = F,
-                     options=list(maxOptions= length(files) ),
-                     choices= files
-      )
+      nums <- substr(files, 1, nchar(files)-4)
+      if(all(!is.na(as.numeric(nums)))){ # if all is numeric
+        selectizeInput("file",
+                       label = "Which report would you like to see?",
+                       #selectize = F,
+                       options=list(maxOptions= length(files) ),
+                       choices= files[order(as.numeric(nums))]
+        )
+      } else { # there are non numeric ones
+        selectizeInput("file",
+                       label = "Which report would you like to see?",
+                       #selectize = F,
+                       options=list(maxOptions= length(files) ),
+                       choices= files
+        )
+      }
     })
     
     ## Reading in data
@@ -347,9 +397,6 @@ shinyServer(function(input, output) {
         # refresh no_acts
         no_acts(no_acts_curr)
         
-        # refresh type colors
-        #no_types = 2^no_acts_curr-1
-        
         # refresh activity colors
         actcols( brewer.pal(no_acts_curr, "Set1") )
         
@@ -359,6 +406,15 @@ shinyServer(function(input, output) {
           pcols[[length(pcols)+1]] <- c("red", "coral")
         }
         col.pattern(pcols)
+        
+        # refresh type colors
+        no_types = 2^no_acts_curr-1
+        no_types
+        set.seed(5464)
+        newcols <- c(NA, col2rgb("black"), createPalette(no_types, actcols()))
+        names(newcols) <- enzN(-1:no_types, as.text = T)
+        newcols[!is.na(type2A(-1:no_types)) & type2A(-1:no_types)==1] <- actcols()
+        typecols(newcols)
       }
       
       
@@ -366,7 +422,7 @@ shinyServer(function(input, output) {
     
     ## Tables
     output$table <- renderDataTable( {
-      tablev()[, -5]
+      tablev()[, -5] |> mutate_if(is.numeric, round, digits=2)
     }, 
     selection =list(mode = 'single', selected = 1, target = 'row', selectable = T), 
     options = list(
@@ -386,7 +442,7 @@ shinyServer(function(input, output) {
         rep_table()[,c("mfe", "Pfold", "Pdeg", "R", "no_sites", "no_acts")],
         rep_table()[, startsWith(colnames(rep_table()), "act")]
       )
-      out
+      out |> mutate_if(is.numeric, round, digits=2)
     }, 
     selection =list(mode = 'single', selected = 1, target = 'row', selectable = T), 
     options = list(
@@ -399,8 +455,8 @@ shinyServer(function(input, output) {
     
     output$rep_props <- renderTable({
       whichone= input$reps_rows_selected
-      rep_table()[whichone, c("seq") ]
-    })
+      t(as.data.frame(c(length=nchar(rep_table()[whichone, "seq"]), rep_table()[whichone, c("mfe", "Pfold", "Pdeg", "R") ]))) |> round(digits=2)
+    }, rownames = T, colnames = F)
     
     ## Text outputs
     output$state_data <- renderText(paste0("Sample taken in generation: ", 
@@ -434,17 +490,23 @@ shinyServer(function(input, output) {
     })
     
     # For cell
+    output$legend <- renderPlot({
+      plot.new()
+    })
+    
     output$hist_mfe <- renderPlot({
       
       #hist(rep_table()$mfe)
-      ggplot(rep_table(), aes(x=mfe))+
+      ggplot(rep_table(), aes(x=mfe, fill=as.factor(type)))+
         geom_histogram()
       
     })
     
     output$hist_Pfold <- renderPlot({
       ggplot(rep_table(), aes(x=Pfold))+
-        geom_histogram()
+        geom_histogram()+
+        scale_fill_manual(values=typecols())+
+        theme(legend.position = "none")
     })
     
     output$hist_Pdeg <- renderPlot({
@@ -453,7 +515,7 @@ shinyServer(function(input, output) {
     })
     
     output$hist_R <- renderPlot({
-      ggplot(rep_table(), aes(x=R))+
+      ggplot(rep_table(), aes(R, fill=no_acts))+
         geom_histogram()
     })
     
@@ -505,6 +567,7 @@ shinyServer(function(input, output) {
 
     # For Replicatro
     output$replicator <- renderPlot({
+      par(mar=c(0,0,0,0))
       whichone= input$reps_rows_selected
       
       repl <- rep_table()[whichone, c("seq", "str") ]
@@ -539,5 +602,14 @@ shinyServer(function(input, output) {
       )
       
     }) # render replicator
+    
+    output$acts <- renderPlot({
+      par(mar=c(0,0,0,0))
+      whichone= input$reps_rows_selected
+      
+      acts = rep_table()[whichone, ] |> select( starts_with("act"))
+      compl_acts = type2vec(rep_table()[whichone, "rev_type"], no_acts())
+      plot_acts(acts, compl_acts, col=actcols())
+    })
     
 })
