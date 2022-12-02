@@ -441,7 +441,7 @@ namespace cmdv {
 			order[iter] = iter;
 		}
 
-		for(int mtime = time + gens ; time < mtime ; time++){ //updating generations
+		for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
 			//outputs
 			if (par_output_interval && !(time % par_output_interval)) do_output();
 			if (par_save_interval && !(time % par_save_interval)) save();
