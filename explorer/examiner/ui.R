@@ -1,5 +1,6 @@
 library(shiny)
 library(plotly)
+library(DT)
 
 shinyUI(fluidPage(
   # Settings
@@ -8,6 +9,7 @@ shinyUI(fluidPage(
     div(fluidRow(
       column(4,
              h4("State"),
+             actionButton("pop", "Input data"),
              uiOutput("reports"),
              textOutput("state_data"),
              dataTableOutput("table"),

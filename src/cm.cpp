@@ -238,18 +238,28 @@ namespace cmdv {
 		//}
 	}
 
-//	bool CompartPool::compartFromFile(const char * infile){
-//		//std::string line, word;
-//		std::ifstream file(infile);
-//
-//		if(!file.is_open()) {
-//			std::cerr << "ERROR: init_fromfile: file can not be opened!" << std::endl;
-//			return false;
-//		}
-//
-//
-//		return true;
-//	}
+	bool CompartPool::compartFromFile(const char * infile){
+		std::string line, word;
+		std::ifstream file(infile);
+
+		if(!file.is_open()) {
+			std::cerr << "ERROR: compartFromFile: file can not be opened!" << std::endl;
+			return false;
+		}
+
+		//get a random cell and empty it
+
+		for(unsigned int cnum = 0; cnum < size; ++cnum){
+			for(int no_input = par_num_input_content; no_input-- && std::getline(file, line); ){
+				std::istringstream linestream(line);
+				linestream >> word;
+				comparts[cnum]->add(word);
+			}
+		}
+
+
+		return true;
+	}
 
 	CompartPool::CompartPool(int _size): size(_size), used_temp(0), no_last_splits(0){
 		time=0;

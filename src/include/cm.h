@@ -118,7 +118,7 @@ namespace cmdv {
 			///initialises matrix from textfile
 			void init_fromfile(char * infile); 
 
-			//bool compartFromFile(const char * infile);
+			bool compartFromFile(const char * infile);
 			
 			//Updates
 

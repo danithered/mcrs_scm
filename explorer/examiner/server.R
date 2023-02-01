@@ -8,8 +8,13 @@ library(RRNA)
 library(plotrix)
 library(dplyr)
 library(Polychrome)
+library(ssh)
 
 #Functions
+sshready_adr <- function(orig){
+  unlist(lapply(strsplit(orig, ":"), function(x) paste(x, collapse=" -p ")))
+}
+
 dirto <- function(to, from=c(0,0)){
   
   return(atan2(to[2] - from[2], to[1] - from[1]) / pi)
@@ -300,15 +305,188 @@ enzN <- Vectorize(function(x, as.text=F){
   if(as.text) return( paste0("E[", paste(sort(acts+1), collapse = ","), "]") )
   return( as.expression(bquote(E[.(paste(sort(acts+1), collapse = ","))])) )
 })
+
+mergepath <- function(...){
+  x <- as.character(unlist(list(...)))
+  x <- x[nchar(x) > 0]
+  if(length(x) == 0) return(NA)
+  
+  wrong <- c(substr(x[1:(length(x)-1) ], nchar(x), nchar(x)) != "/", F)
+  x[wrong] <- paste0(x[wrong], "/")
+  
+  wrong <- c(F, substr(x[2:length(x)], 1, 1) == "/")
+  x[wrong] <- substr(x[wrong], 2, nchar(x[wrong]))
+  
+  return( paste(x, collapse = "") )
+}
+
+get_filelist <- Vectorize(function(path="~/", ssh=NA, ssh_key="~/.ssh/id_rsa"){
+  if(nchar(path) > 0 & substr(path, nchar(path), nchar(path)) != "/" ) path=paste0(path, "/")
+  
+  if(is.na(ssh)){ #local dir
+    if( dir.exists( path ) ){
+      out <- system(paste("find", path, "-maxdepth 1 -type f"), intern=T)
+      if( length(out) == 0 ) return( NA) 
+      else return( out )
+    } else {
+      return(NA)
+    }
+  } else try({ 
+    #it is in shh
+    #connecting to ssh
+    ssh_con <- ssh_connect(ssh, keyfile = ssh_key)
+    if(!ssh_session_info(ssh_con)$connected){
+      warning("Could not establish shh connection")
+      return(NA)
+    }
+    
+    #check if dir exists
+    if(!as.logical(capture.output(ssh_exec_wait(ssh_con, paste0("if [ -d ", path, " ]; then echo TRUE; else echo FALSE; fi")  ))[1])){
+      return(NA)
+    }
+    
+    #get subdirs
+    out <- capture.output(ssh_exec_wait(ssh_con, paste("find", path, "-maxdepth 1 -type f") ))
+    if(length(out) > 1) out <- out[1:(length(out)-1)]
+    else out <- NA
+    
+    #disconnect
+    ssh_disconnect(ssh_con)
+    return(out)
+    
+  })
+})
+
+get_file <- function(target, path="~/", ssh=NA, ssh_key="~/.ssh/id_rsa", fast=T, to=NA){
+  if(is.na(ssh)){
+    file = paste(path, 
+                 target, 
+                 sep=ifelse(nchar(path) > 0 & substr(path, nchar(path), nchar(path)) != "/", "/", ""))
+    if( all(file.exists(file)) ) return(file)
+    else return(NA)
+  } else try({ 
+    #it is in shh
+    
+    #check output dir
+    if(is.na(to)) {
+      to = tempdir()
+    } else {
+      if(!dir.exists(to)){
+        if(!dir.create(to)) {
+          warning(paste("Cannot create dir", to))
+          return(NA)
+        }
+      }
+    }
+    
+    #download
+    tofile = paste(to, filename(target), sep=ifelse(nchar(to) > 0 & substr(to, nchar(to), nchar(to)) != "/", "/", ""))
+    if(fast){
+      system(paste("ssh", sshready_adr(ssh), '"tar -C', path, '-zc', target, '" | tar zx -C', to))
+      if(all(file.exists( tofile ))){
+        return( tofile )
+      } else {
+        warning(paste("Could not download file tru shh", target))
+        return(NA)
+      }
+    } else {
+      #connecting to ssh
+      ssh_con <- ssh_connect(ssh, keyfile = ssh_key)
+      if(!ssh_session_info(ssh_con)$connected){
+        warning("Could not establish shh connection")
+        return(NA)
+      }
+      #download
+      scp_download(ssh_con, 
+                   files= paste(path, target, sep=ifelse(nchar(path) > 0 & substr(path, nchar(path), nchar(path)) != "/", "/", "")),
+                   to=to
+      )
+      #disconnect
+      ssh_disconnect(ssh_con)
+      return( tofile )
+    }
+  })
+}
+
+filename <- function(x){
+  sapply(strsplit(x, "/"), function(x) x[length(x)])
+}
+
+path <- function(x){
+  sapply(strsplit(x, "/"), function(x) ifelse(length(x) > 1, paste(x[1:(length(x)-1)], collapse = "/"), x) )
+}
+
+# app specific functions
+get_my_data <- function(file, path="", ssh=NA, ssh_key= "~/.ssh/id_rsa"){
+  out <- list()
+  
+  try({
+    f <- get_file(file, path, ssh=ssh, ssh_key=ssh_key, fast=T, to=NA)
+  
+    data <- read_xml(f)
+    
+    d <- xml_child(data, 1) # mooving to mcrscm
+    
+    out$time = get_child(d, "time", "int")
+    out$size = get_child(d, "sim.size", "int")
+    try({
+      out$no_last_splits = get_child(d, "sim.no_last_splits", "int")
+      })
+    
+    cells <- get_child(d, "cells")
+    
+    # get table
+    out$table = do.call(rbind, lapply(1:xml_length(cells), function(no_cell){
+      cell <- xml_child(cells, no_cell)
+      
+      out <- as.data.frame(list( alive = get_child(cell, "cell.alive", "logical"),
+                                 leftover = get_child(cell, "cell.leftover", "double"),
+                                 M = get_child(cell, "metabolism", "double"),
+                                 no_reps = get_child(cell, "cell.reps") |> get_child("count", "int")#,
+                                 #reps = get_child(cell, "cell.reps")
+      ))
+      out$reps <- list(get_child(cell, "cell.reps"))
+      out
+    }))
+    
+    if(!is.na(ssh)) file.remove(f)
+  }) # try
+  
+  return(out)
+}
+
+get_my_xmls <- function(path, ssh=NA, ssh_key="~/.ssh/id_rsa"){
+  grep(".xml", get_filelist(path= mergepath(path, "SAVE/"), ssh=ifelse(nchar(ssh) == 0, NA, ssh), ssh_key=ssh_key), value=T)
+}
+
 # Get data
 
 rules <- readRDS("rules.RDS")
 
 # Server
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
     setwd("/home/danielred/data/programs/mcrs_to_scm/OUT/A7retest.6_5/SAVE/")
-    files <- grep(".xml", list.files(), value = T)
+  
+    # inic params
+    params <- reactiveValues()
+    params$cache.path <- "report_cache/"
+    params$dir <- "/home/danielred/data/programs/mcrs_to_scm/OUT/A7retest.6_5/"
+    params$ssh <- NA
+    params$ssh_key <- "~/.ssh/id_rsa"
+    params$force <- FALSE
     
+    # reads params from URL
+    observe({
+      query <- parseQueryString(session$clientData$url_search)
+      if (length(query) > 0) {
+        ws <- names(query)[names(query) %in% names(params)]
+        for(w in ws) params[[w]] <- ifelse(nchar(query[[w]]) > 0, query[[w]], NA)
+        files(get_my_xmls( params$dir, params$ssh, params$ssh_key))
+      }
+    })
+  
+    # inic other vals
+    files <- reactiveVal(get_my_xmls( isolate(params$dir), isolate(params$ssh), isolate(params$ssh_key))) 
     tablev <- reactiveVal()
     rep_table <- reactiveVal()
     size <- reactiveVal()
@@ -318,54 +496,67 @@ shinyServer(function(input, output) {
     actcols <- reactiveVal()
     no_acts <- reactiveVal(0)
     col.pattern <- reactiveVal()
-    
+      
     ## UI
     output$reports <- renderUI({
-      nums <- substr(files, 1, nchar(files)-4)
+      files()
+      fs <- isolate(files())
+      names(fs) <- filename(fs)
+      nums <- substr(names(fs), 1, nchar(names(fs))-4)
       if(all(!is.na(as.numeric(nums)))){ # if all is numeric
+        #names(files) <- sapply(strsplit(names(files), ".", fixed=T), function(x) x[1])
+        names(fs) <- as.character(nums)
         selectizeInput("file",
                        label = "Which report would you like to see?",
                        #selectize = F,
-                       options=list(maxOptions= length(files) ),
-                       choices= files[order(as.numeric(nums))]
+                       options=list(maxOptions= length(fs)),
+                       choices= fs[order(as.numeric(nums))]
         )
       } else { # there are non numeric ones
         selectizeInput("file",
                        label = "Which report would you like to see?",
                        #selectize = F,
-                       options=list(maxOptions= length(files) ),
-                       choices= files
+                       options=list(maxOptions= length(fs )),
+                       choices= fs
         )
       }
     })
     
-    ## Reading in data
-    observeEvent(input$file, {try({
-      data <- read_xml(input$file)
-      
-      d <- xml_child(data, 1) # mooving to mcrscm
-      
-      time(get_child(d, "time", "int"))
-      size(get_child(d, "sim.size", "int"))
-      try(no_last_splits(get_child(d, "sim.no_last_splits", "int")))
-      
-      cells <- get_child(d, "cells")
-      
-      # get table
-      tablev( do.call(rbind, lapply(1:xml_length(cells), function(no_cell){
-        cell <- xml_child(cells, no_cell)
-        
-        out <- as.data.frame(list( alive = get_child(cell, "cell.alive", "logical"),
-                                   leftover = get_child(cell, "cell.leftover", "double"),
-                                   M = get_child(cell, "metabolism", "double"),
-                                   no_reps = get_child(cell, "cell.reps") |> get_child("count", "int")#,
-                                   #reps = get_child(cell, "cell.reps")
-        ))
-        out$reps <- list(get_child(cell, "cell.reps"))
-        out
-      }))
+    popup <- function(pdir, pssh, pssh_key) modalDialog(
+      textInput("path", "Path:", value=pdir),
+      textInput("ssh", "SSH:", value=pssh),
+      textInput("ssh_key", "PAth to SSH key:", value = pssh_key),
+      footer = tagList(
+        modalButton("Cancel"),
+        actionButton("submit_path", "OK")
       )
-    }) })
+    )
+    
+    # Reading in data
+    observeEvent(input$pop, {
+      showModal(popup(params$dir, params$ssh, params$ssh_key))
+    })
+    
+    observeEvent(input$submit_path, {
+      params$dir <- input$path
+      params$ssh <- ifelse(nchar(input$ssh) > 0, input$ssh, NA)
+      params$ssh_key <- input$ssh_key
+      
+      files(get_my_xmls( params$dir, params$ssh, params$ssh_key))
+      
+      removeModal()
+    })
+    
+    observeEvent(input$file, {
+      data <- get_my_data(filename(input$file), path=path(input$file), ssh=params$ssh, ssh_key = params$ssh_key)
+      
+      if(length(data) > 0){
+        no_last_splits(data$no_last_splits)
+        time(data$time)
+        size(data$size)
+        tablev(data$table)
+      }
+    }) # observeEvent
     
     observeEvent(input$table_rows_selected, {
       # examine reps

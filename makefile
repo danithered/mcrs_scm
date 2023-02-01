@@ -39,9 +39,11 @@ OBJ_randseq = $(patsubst %,$(ODIR)/%,$(_OBJ_randseq))
 
 
 $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
+	@mkdir -p ${ODIR}
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(ODIR)/%.o: $(SRCDIR)/%.c $(DEPS)
+	@mkdir -p ${ODIR}
 	$(C) -c -o $@ $< $(CFLAGS)
 
 $(PROGNAME): $(OBJ)
