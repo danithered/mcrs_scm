@@ -248,13 +248,13 @@ namespace cmdv {
 		}
 
 		//get a random cell and empty it
+		auto target = get();
+		target->clear();
 
-		for(unsigned int cnum = 0; cnum < size; ++cnum){
-			for(int no_input = par_num_input_content; no_input-- && std::getline(file, line); ){
-				std::istringstream linestream(line);
-				linestream >> word;
-				comparts[cnum]->add(word);
-			}
+		while(std::getline(file, line)){
+			std::istringstream linestream(line);
+			linestream >> word;
+			target->add(word);
 		}
 
 
