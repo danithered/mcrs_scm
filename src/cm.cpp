@@ -238,6 +238,44 @@ namespace cmdv {
 		//}
 	}
 
+	unsigned int CompartPool::discoverComparts(const char * sourcedir){
+		std::string command;
+		struct stat sb;
+
+		// test dir
+		if(stat(sourcedir, &sb) || (sb.st_mode & S_IFDIR)) return 0; // if sourcedir does not exist or is a file it returns 0
+
+		//iterate tru file names
+		unsigned int no_files = 0;
+		for (const auto & file : fs::directory_iterator(sourcedir)){
+			if(file.is_regular_file()){
+				std::stringstream fn(file.path().stem().string());
+				std::string token;
+
+				// read in and check first word
+				getline(fn, token, '_');
+				if(token != "bubble") continue;
+
+				// read in second word (time) and check first letter
+				getline(fn, token, '_');
+				if(token[0] != 't') continue;
+
+				// read in time
+			 	unsigned int at = std::stoi(token.substr(1));
+				if( bubblefiles.find(at) == bubblefiles.end() ) { // if no file has been given at this timepoint before...
+					bubblefiles.insert( Bubbles::value_type( at , std::list<std::string>() ) ); // ... then init it will null value
+				}
+
+				bubblefiles.find(at)->second.push_back( file.path() );
+
+				//std::cout << std::stoi(token.substr(1))  << std::endl;
+				++no_files;
+			}
+		}
+
+		return no_files;
+	}
+
 	bool CompartPool::compartFromFile(const char * infile){
 		std::string line, word;
 		std::ifstream file(infile);
@@ -248,7 +286,7 @@ namespace cmdv {
 		}
 
 		//get a random cell and empty it
-		auto target = get();
+		auto target = *get();
 		target->clear();
 
 		while(std::getline(file, line)){

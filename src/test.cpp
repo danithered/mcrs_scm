@@ -5,6 +5,7 @@
 //#include <boost/multiprecision/cpp_int.hpp>
 #include <cmath>
 #include <sys/stat.h>
+#include <filesystem>
 
 #include "annot.h"
 #include "dv_tools.h"
@@ -14,7 +15,7 @@
 #include <list>
 
 using namespace std;
-
+namespace fs = std::filesystem;
 
 unsigned long long int strToInt(char *str, int length){
 	int res = 0;
@@ -92,6 +93,39 @@ void init_fromfile(char *infile) {
 }
 
 
+unsigned int discover(const char * sourcedir){
+	struct stat sb;
+
+	// test dir
+	if(stat(sourcedir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
+		std::cout << "directory check: failed for " << sourcedir << std::endl << "path exists: " << (bool) (stat(sourcedir, &sb) == 0) << std::endl << "it is a dir: " << (sb.st_mode & S_IFDIR) << std::endl ;
+		return 0; // if sourcedir does not exist or is a file it returns 0
+	}
+	else std::cout << "directory check: ok" << std::endl;
+
+	//iterate tru file names
+	unsigned int no_files = 0;
+	for (const auto & file : fs::directory_iterator(sourcedir)){
+		if(file.is_regular_file()){
+			std::stringstream fn(file.path().stem().string());
+			std::string token;
+
+			// read in and check first word
+			getline(fn, token, '_');
+			if(token != "bubble") continue;
+
+			// read in second word (time) and check first letter
+			getline(fn, token, '_');
+			if(token[0] != 't') continue;
+
+			// read in time
+			std::cout << std::stoi(token.substr(1))  << std::endl;
+			++no_files;
+		}
+	}
+
+	return no_files;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -100,7 +134,10 @@ int main(int argc, char *argv[]) {
     r = (gsl_rng *) gsl_rng_alloc (gsl_rng_mt19937);
     gsl_rng_set(r, time(&timer));
 
-    	for(int c = 5; c--;) std::cout << c << std::endl;
+
+    std::cout << "returning "  << discover(argv[1]) << " from " << argv[1] << std::endl;
+
+//    	for(int c = 5; c--;) std::cout << c << std::endl;
 /*
     	double maradek = 0.6;
     	double par_MN = 10;

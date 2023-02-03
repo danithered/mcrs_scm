@@ -9,7 +9,9 @@
 #include <iostream>
 #include <cstring>
 #include <sys/stat.h>
+#include <filesystem>
 #include <list>
+#include <map>
 
 #define SINGLESQ 2.0
 #define SINGLEHEX 3.0
@@ -19,8 +21,11 @@
 #define NEIGH5X5 8.0
 #define HEX1 4.0
 
+namespace fs = std::filesystem;
 
 namespace cmdv {
+	typedef std::map<unsigned int, std::list<std::string> > Bubbles;
+
 	class Compart{
 		public:
 			//Compart content
@@ -78,7 +83,6 @@ namespace cmdv {
 		public:
 			unsigned int size;
 			int time;
-			//int no_replicators;
 
 			Compart **comparts;
 			std::vector<Compart *> temp_comparts;
@@ -118,6 +122,7 @@ namespace cmdv {
 			///initialises matrix from textfile
 			void init_fromfile(char * infile); 
 
+			unsigned int discoverComparts(const char * sourcedir); 
 			bool compartFromFile(const char * infile);
 			
 			//Updates
@@ -153,6 +158,8 @@ namespace cmdv {
 			std::vector<double> out_length; //mean length of replicators with no act, act0, act1, etc.
 			std::vector<double> out_a; //mean activity of replicators with no act, act0, act1, etc. (the strength of the indicated activities of course)
 			std::vector<double> out_mfe; //mean mfe of replicators with no act, act0, act1, etc.
+
+			Bubbles bubblefiles;
 	};
 	
 }

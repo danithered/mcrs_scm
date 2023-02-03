@@ -7,7 +7,6 @@
 
 using namespace std;
 
-
 /* return values:
  0: Ok
  1: died
