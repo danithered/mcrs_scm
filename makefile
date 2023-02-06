@@ -4,7 +4,7 @@ IDIR =./src/include
 ODIR=./src/obj
 SRCDIR=./src
 
-CC=g++
+CC=g++ -std=c++17
 C=gcc
 
 #CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` `pkg-config --cflags RNAlib2` -O3 # for stuff
