@@ -28,7 +28,7 @@ using namespace std;
 				char par_outdir[255] = "OUT"; // name of output folder
 				char par_output_filename[255] = "output.csv"; // the name of file, where average output is written
 				char par_savedir[255] = "SAVE"; //
-				char par_load[255] = "IN/1_InputMatrix.dat"; //"\0"; // initial state
+				char par_load[255] = "\0"; // initial state
 				char par_bubbles[255] = "\0";
 
 //mutation rates
