@@ -501,7 +501,8 @@ namespace cmdv {
 			order[iter] = iter;
 		}
 
-		for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
+		//for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
+		for(int mtime = time + gens ; time < mtime ; time++){ //updating generations
 			autoCompartInput();
 
 			//outputs
