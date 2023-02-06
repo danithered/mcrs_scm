@@ -276,6 +276,15 @@ namespace cmdv {
 		return no_files;
 	}
 
+	void CompartPool::autoCompartInput(){
+		auto match = bubblefiles.find(time);
+		if(match != bubblefiles.end()){ // if found
+			for(auto input = match->second.begin(), end = match->second.end(); input != end; ++input){
+				compartFromFile(input->c_str());
+			}
+		}
+	}
+
 	bool CompartPool::compartFromFile(const char * infile){
 		std::string line, word;
 		std::ifstream file(infile);
@@ -493,12 +502,11 @@ namespace cmdv {
 		}
 
 		for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
+			autoCompartInput();
+
 			//outputs
 			if (par_output_interval && !(time % par_output_interval)) do_output();
 			if (par_save_interval && !(time % par_save_interval)) save();
-
-			//make all compart updateable
-			//all_updateable();
 
 			//UPDATING
 			for(iter = 0; iter < size; iter++){

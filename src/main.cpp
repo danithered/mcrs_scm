@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) {
 
 	//load if needed
 	if(std::strlen(par_load) > 0) automata.init_fromfile(par_load);
+	if(std::strlen(par_bubbles) > 0) automata.discoverComparts(par_bubbles);
 
 	//open output
 	if(automata.openOutputs()) { //returns not 0 if fails

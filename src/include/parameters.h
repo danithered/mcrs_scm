@@ -11,7 +11,7 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.5 splitting untill all children are under splitsize\0";
+const char versioninfo[255] = "ver 2.6 bubble inport from mcrs\0";
 
 extern int par_noEA;
 
@@ -33,6 +33,7 @@ extern char par_output_filename[255];
 extern char par_savedir[255];
 extern char par_load[255];
 extern char par_seed_file[255];
+extern char par_bubbles[255];
 
 extern double par_init_grid;
 //extern double par_death;

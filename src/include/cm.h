@@ -124,6 +124,7 @@ namespace cmdv {
 
 			unsigned int discoverComparts(const char * sourcedir); 
 			bool compartFromFile(const char * infile);
+			void autoCompartInput();
 			
 			//Updates
 

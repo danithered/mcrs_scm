@@ -29,6 +29,7 @@ using namespace std;
 				char par_output_filename[255] = "output.csv"; // the name of file, where average output is written
 				char par_savedir[255] = "SAVE"; //
 				char par_load[255] = "IN/1_InputMatrix.dat"; //"\0"; // initial state
+				char par_bubbles[255] = "\0";
 
 //mutation rates
 				double par_substitution = 0.005; //
@@ -107,6 +108,7 @@ int paramsToFile(const char* filename){
 	paramfile << "par_savedir " << par_savedir << std::endl;
 	paramfile << "par_load " << par_load << std::endl;
 	paramfile << "par_seed_file " << par_seed_file << std::endl;
+	paramfile << "par_bubbles " << par_bubbles << std::endl;
 	//paramfile << "par_death " << par_death << std::endl;
 	//paramfile << "par_diffusion_rate " << par_diffusion_rate << std::endl;
 	paramfile << "par_init_grid " << par_init_grid << std::endl;
@@ -182,6 +184,7 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_rangePdeg")) option = 'x';
 			else if(!strcmp(argv[i], "--par_minPdeg")) option = 'X';
 			else if(!strcmp(argv[i], "--par_flexPdeg")) option = 'k';
+			else if(!strcmp(argv[i], "--par_bubbles")) option = 'b';
 			else {
 				std::cerr << "ERROR at reading argoments: not valid argoment (" << argv[i] << ")!" << std::endl;
 				return -1;
@@ -435,6 +438,16 @@ int Args(int argc, char **argv)
 				if ( strlen(argv[i]) > 0 ) strcpy(par_seed_file, argv[i]);
 				continue;
 				
+			case 'b':
+				if (++i == argc) return 1;
+				if ( strlen(argv[i]) > 0 ) 
+					strcpy(par_bubbles, argv[i]);
+				else {
+					std::cerr << "ERROR at reading argoments: option " << option << ": should be more than 0 char long!" << std::endl;
+					return -1;
+				}
+				continue;
+
 			case 'L':
 				if (++i == argc) return 1;
 				if ( strlen(argv[i]) > 0 ) 
