@@ -243,7 +243,7 @@ namespace cmdv {
 		struct stat sb;
 
 		// test dir
-		if(stat(sourcedir, &sb) || (sb.st_mode & S_IFDIR)) return 0; // if sourcedir does not exist or is a file it returns 0
+		if(stat(sourcedir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) return 0; // if sourcedir does not exist or is a file it returns 0
 
 		//iterate tru file names
 		unsigned int no_files = 0;
