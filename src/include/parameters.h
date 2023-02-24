@@ -11,10 +11,11 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.6 bubble inport from mcrs\0";
+const char versioninfo[255] = "ver 2.6.2 bubble inport from mcrs, custom quit conditions\0";
 
 extern int par_noEA;
 
+extern int par_quit;
 extern int par_maxtime;
 extern int par_poolsize;
 extern int par_output_interval;

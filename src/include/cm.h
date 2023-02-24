@@ -26,6 +26,8 @@ namespace fs = std::filesystem;
 namespace cmdv {
 	typedef std::map<unsigned int, std::list<std::string> > Bubbles;
 
+	enum QuitCond{qnone=0, qreplicator=1, qcompart=2, qsplit=4, qfull=8, qalive=16};
+
 	class Compart{
 		public:
 			//Compart content
@@ -85,9 +87,9 @@ namespace cmdv {
 			int time;
 
 			Compart **comparts;
-			std::vector<Compart *> temp_comparts;
-			unsigned int used_temp;
-			unsigned int no_last_splits;
+			std::vector<Compart *> temp_comparts; //< daycare, temporary pool for child - compartments from split events
+			unsigned int used_temp; //< number of slots used in temp_comparts
+			unsigned int no_last_splits; //< number of splits in last update step
 			
 			std::string savedir;
 
@@ -110,16 +112,16 @@ namespace cmdv {
 			
 			//Functions
 			
-			///gives back pointer to nth comp
+			/// gives back pointer to nth comp
 			inline Compart* get(int cell);
 
-			///gives back pointer to random comp
+			/// gives back pointer to random comp
 			inline Compart** get();
 			
-			///gives back pointer to random comp (excluded arg)
+			/// gives back pointer to random comp (excluded arg)
 			inline Compart* get(Compart *except);
 			
-			///initialises matrix from textfile
+			/// initialises matrix from textfile
 			void init_fromfile(char * infile); 
 
 			unsigned int discoverComparts(const char * sourcedir); 

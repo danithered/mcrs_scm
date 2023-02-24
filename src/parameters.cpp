@@ -1,4 +1,5 @@
 #include "parameters.h" 
+#include "include/cm.h"
 
 using namespace std;
 
@@ -7,6 +8,7 @@ using namespace std;
 
 //parameters to change with Args()
 //ca params
+				int par_quit = cmdv::QuitCond::qnone; // quitting condition. See: cdv::QuitCond
 				int par_maxtime = 2000000; //length of simulation
 
 				double par_MN = 10.0; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
@@ -92,6 +94,7 @@ int paramsToFile(const char* filename){
 	//paramfile << "RNAversion " << VRNA_VERSION << std::endl;
 	paramfile << "MAXLEN " << MAXLEN << std::endl;
 	paramfile << "par_noEA " << par_noEA << std::endl;
+	paramfile << "par_quit " << par_quit << std::endl;
 	paramfile << "par_maxtime " << par_maxtime << std::endl;
 	paramfile << "par_poolsize " << par_poolsize << std::endl;
 	paramfile << "par_splitfrom " << par_splitfrom << std::endl;
@@ -185,6 +188,7 @@ int Args(int argc, char **argv)
 			else if(!strcmp(argv[i], "--par_minPdeg")) option = 'X';
 			else if(!strcmp(argv[i], "--par_flexPdeg")) option = 'k';
 			else if(!strcmp(argv[i], "--par_bubbles")) option = 'b';
+			else if(!strcmp(argv[i], "--par_quit")) option = 'Q';
 			else {
 				std::cerr << "ERROR at reading argoments: not valid argoment (" << argv[i] << ")!" << std::endl;
 				return -1;
@@ -370,6 +374,14 @@ int Args(int argc, char **argv)
 				continue;
 			
 			// int
+			case 'Q':
+				if (++i == argc) return 1;
+				par_quit = atoi(argv[i]);
+				if(par_quit <= 0) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": cant be negative!" << std::endl;
+					return(-1);
+				}
+				continue;
 			case '+':
 				if (++i == argc) return 1;
 				par_seed_plus = atoi(argv[i]);

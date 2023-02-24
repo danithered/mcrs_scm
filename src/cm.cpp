@@ -308,6 +308,7 @@ namespace cmdv {
 		return true;
 	}
 
+	// Constructor
 	CompartPool::CompartPool(int _size): size(_size), used_temp(0), no_last_splits(0){
 		time=0;
 		//saving_freq = 0;
@@ -529,6 +530,20 @@ namespace cmdv {
 
 			// after updates throw back new copmarts
 			compartShower();
+
+			// quit conditions
+			if(par_quit){
+				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
+				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
+				if(par_quit & qsplit) if(no_last_splits > 0) break; 
+				if(par_quit & qfull) {
+					unsigned int comp = 0;
+					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
+					if(comp == size) break;
+				}
+				if(par_quit & qalive) if(Compart::no_alive == size) break;
+			}
+
 		}
 
 		if(par_save_interval) save();
@@ -820,5 +835,5 @@ namespace cmdv {
 		return 0;
 	}
 
-}
+} // namespace cmdv
 
