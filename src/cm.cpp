@@ -503,7 +503,8 @@ namespace cmdv {
 		}
 
 		//for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
-		for(int mtime = time + gens ; time < mtime ; time++){ //updating generations
+		int mtime=0; // so it can detect quit condition 
+		for(mtime = time + gens ; time < mtime ; time++){ //updating generations
 			autoCompartInput();
 
 			//outputs
@@ -551,7 +552,9 @@ namespace cmdv {
 
 		delete [] (order);
 
-		return(0);
+		if(time < mtime) return(2); // quit condition triggered
+		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		else return(0);
 	}
 
 	int CompartPool::openOutputs(){

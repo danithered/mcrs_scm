@@ -65,27 +65,30 @@ int main(int argc, char *argv[]) {
 	paramsToFile(paramfilename.c_str());
 
 	//Running simulation
-	if (automata.oUpdate(par_maxtime)){
-		//close rng
-		gsl_rng_free(r);
+	int endstate = automata.oUpdate(par_maxtime);
 
-		//report closing
-		timer = time(0);
-		std::cout << "Simulation " << par_ID << " ending at: " << ctime(&timer) << std::endl << "It has survived." << std::endl;
+	//close rng
+	gsl_rng_free(r);
 
-		return 0; // it has survived
+	//report closing
+	timer = time(0);
+	std::cout << "Simulation " << par_ID << " ending at: " << ctime(&timer) << std::endl; 
+
+	switch(endstate){
+		case 0:
+			std::cout << "It has survived." << std::endl;
+			return 0; // it has survived
+		case 1:
+			std::cout << "It has died out." << std::endl;
+			return 1;
+		default:
+			if(rnarep::CellContent::no_replicators) std::cout << "It has survived.";
+			else std::cout << "It has died out.";
+			std::cout << " And quitted with condition: " << endstate << std::endl;
+			return endstate;
 	}
-	else{	
-		// died out
-		//close rng
-		gsl_rng_free(r);
 
-		//report closing
-		timer = time(0);
-		std::cout << "Simulation " << par_ID << " ending at: " << ctime(&timer) << std::endl << "It has died out." << std::endl;
-
-		return 1;
-	}
+	return -100;
 
 }
 
