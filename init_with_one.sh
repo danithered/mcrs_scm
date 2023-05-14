@@ -21,7 +21,7 @@ do
 		mv IN/tempbubis/$f/$f IN/tempbubis/$f/bubble_t0_1.tsv	
 
 		# running simulation
-		./mcrscm --par_maxtime 20000 --par_poolsize 1000 --par_splitfrom 80 --par_MN 10 --par_output_interval 10 --par_save_interval 1000 --par_ID A7fromone.2_${f} --par_str_pool IN/str/mappingA7.txt --par_quit 4 --par_bubbles IN/tempbubis/$f --par_substitution 0.05 >> fromone.txt
+		./mcrscm --par_maxtime 20000 --par_poolsize 1000 --par_splitfrom 50 --par_MN 10 --par_output_interval 10 --par_save_interval 1000 --par_ID A7fromone.3_${f} --par_str_pool IN/str/mappingA7.txt --par_quit 4 --par_bubbles IN/tempbubis/$f --par_substitution 0.005 >> fromone.txt
 
 		# if it has died 1
 		# if it has survived 0
