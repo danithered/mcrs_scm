@@ -149,7 +149,8 @@ namespace cmdv {
 		auto oldfirst= reps.begin();
 		
 		//compute number of new replicators
-		leftover += M() * par_MN;  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
+		//leftover += M() * par_MN;  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
+		leftover += (par_splitfrom/2 - 1)*(1-std::exp(M() * par_MN));  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
 		int number_of_new = leftover; //number is an integer, float part will be used in next round
 		leftover -= number_of_new; //leftover contains that part of metabolism that is not used in this round
 

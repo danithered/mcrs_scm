@@ -11,7 +11,7 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.6.2 bubble inport from mcrs, custom quit conditions\0";
+const char versioninfo[255] = "ver 2.7.1 new function for met-repl\0";
 
 extern int par_noEA;
 

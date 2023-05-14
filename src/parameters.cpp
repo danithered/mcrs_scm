@@ -11,7 +11,7 @@ using namespace std;
 				int par_quit = cmdv::QuitCond::qnone; // quitting condition. See: cdv::QuitCond
 				int par_maxtime = 2000000; //length of simulation
 
-				double par_MN = 10.0; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
+				double par_MN = -0.005; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
 				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
 				int par_num_input_content = 25; //number of replicators read from file to cells
