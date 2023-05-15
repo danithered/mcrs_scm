@@ -377,7 +377,7 @@ int Args(int argc, char **argv)
 			case 'Q':
 				if (++i == argc) return 1;
 				par_quit = atoi(argv[i]);
-				if(par_quit <= 0) {
+				if(par_quit < 0) {
 					std::cerr << "ERROR at reading argoments: option " << option << ": cant be negative!" << std::endl;
 					return(-1);
 				}
