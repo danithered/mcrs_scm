@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 	paramsToFile(paramfilename.c_str());
 
 	//Running simulation
-	int endstate = automata.oUpdate(par_maxtime);
+	int endstate = automata.Update(par_maxtime);
 
 	//close rng
 	gsl_rng_free(r);

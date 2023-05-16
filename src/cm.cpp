@@ -14,8 +14,6 @@ namespace cmdv {
 		alive=false;
 		awake=true;
 		//metabolism = 0;
-		leftover = 0;
-		//updateable = true;
 		reciproc_noEA = 1 / (double) par_noEA;
 	}
 
@@ -30,7 +28,6 @@ namespace cmdv {
 	void Compart::clear(){
 		wake(); //to count properly, dormant cells have to be awaken
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
-		leftover = 0; //so it did not inherits lost compartments metabolism
 		M(); //to refresh alive no_alive and no_replicators according to awake
 	}
 
@@ -56,16 +53,9 @@ namespace cmdv {
 				} 
 			}
 
-			target->split();
+			//target->split(); // no need as size cant exceed splitsize multiple times
 			target->sleep();
 			
-			//target->updateable = false;
-			
-			/*clear leftover
-			 * it would be unfair to inherit something from a metabolism with a possibly completely different composition 
-			 * consider it a price for splitting */
-			leftover = 0;
-			//target->leftover = 0; it is handled in clear()
 		}
 		return(0);
 
@@ -148,55 +138,16 @@ namespace cmdv {
 	std::list<rnarep::CellContent>::iterator Compart::replication(){
 		auto oldfirst= reps.begin();
 		
-		//compute number of new replicators
-		//leftover += M() * par_MN;  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
-		leftover += (par_splitfrom/2 - 1)*(1-std::exp(M() * par_MN));  //number of new replicators is linear function of M, slope is par_MN, intercept is 0 (+ leftover from previous round)
-		int number_of_new = leftover; //number is an integer, float part will be used in next round
-		leftover -= number_of_new; //leftover contains that part of metabolism that is not used in this round
-
-		/*if(number_of_new > reps.size()){
-			std::cerr << "Number of new replicas (" << number_of_new << ") is higher than number of replicators (" << reps.size() << ")!" << std::endl;
-			number_of_new = reps.size();
-		}*/
-
-		if(number_of_new){
-			double sum=0;
-			int size_origin = reps.size();
-			double *replicabilities = new double [size_origin];
-			double *r_it = replicabilities;
-
-			//extract Rs
-			for(auto rep = reps.begin(); rep != reps.end(); rep++) { 
-				//if(!rep->empty){
-					sum += (*r_it = rep->getR()) ;
-				//} else {
-				//	*r_it = 0.0; //if there is an empty replicator here, we have some problems...
-				//}
-				r_it++;
-			}
-
-			//create new replicators
-			for(int already_added = 0; already_added < number_of_new; already_added++){
-				//which replicator is being replicated
-				int decision = dvtools::brokenStickVals(replicabilities, size_origin, sum, gsl_rng_uniform(r)) ; //It can be negative! See: brokenStickVals
-/*				if(decision < 0) {
-					std::cerr << "ERROR: replication: brokenStickVals returned negative value!" << std::endl;
-					return(reps.end());
-				}
-*/
+		for(auto &rep : reps){
+			const double CperM = par_claimNorep * M(), replicability = rep.getR();
+			if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
 				//replicate it!
 				auto newrep = add(); //now reps.begin() = newrep
-				//newrep->replicate( reps[decision + already_added] );
-				newrep->replicate( *std::next(newrep, decision + already_added + 1) );
+				newrep->replicate( rep );
 			}
-			
-
-			//free
-			delete [] (replicabilities);
 		}
 
 		return(oldfirst);
-
 	}
 
 	void Compart::sleep(){
@@ -483,6 +434,52 @@ namespace cmdv {
 
 
 		return rnarep::CellContent::no_replicators;
+	}
+
+	//Update according to a random order (in every generation all cells will be updated)
+	int CompartPool::Update(int gens){
+		//check if output is open
+		if(par_output_interval && !output) {
+			std::cerr << "ERROR: output not open" << std::endl;
+			return(-1);
+		}
+
+		int mtime=0; // so it can detect quit condition 
+		for(mtime = time + gens ; time < mtime ; time++){ //updating generations
+			autoCompartInput();
+
+			//outputs
+			if (par_output_interval && !(time % par_output_interval)) do_output();
+			if (par_save_interval && !(time % par_save_interval)) save();
+
+			//UPDATING
+			for(unsigned int iter = 0; iter < size; iter++) comparts[ iter ]->update();
+
+			// after updates throw back new copmarts
+			compartShower();
+
+			// quit conditions
+			if(par_quit){
+				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
+				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
+				if(par_quit & qsplit) if(no_last_splits > 0) break; 
+				if(par_quit & qfull) {
+					unsigned int comp = 0;
+					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
+					if(comp == size) break;
+				}
+				if(par_quit & qalive) if(Compart::no_alive == size) break;
+			}
+
+		}
+
+		if(par_save_interval) save();
+		if( std::strlen(par_output_filename) ) do_output();
+
+
+		if(time < mtime) return(2); // quit condition triggered
+		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		else return(0);
 	}
 
 	//Update according to a random order (in every generation all cells will be updated)

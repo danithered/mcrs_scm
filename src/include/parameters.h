@@ -11,7 +11,7 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 2.7.1 new function for met-repl\0";
+const char versioninfo[255] = "ver 3.0.0 new update function\0";
 
 extern int par_noEA;
 
@@ -22,7 +22,7 @@ extern int par_output_interval;
 extern int par_save_interval;
 extern int par_seed;
 extern int par_seed_plus;
-extern double par_MN;
+extern double par_claimNorep;
 extern int par_splitfrom;
 extern int par_num_input_content;
 

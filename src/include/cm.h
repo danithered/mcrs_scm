@@ -76,7 +76,6 @@ namespace cmdv {
 		//private:
 			static std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
-			double leftover;
 	
 	};
 
@@ -132,6 +131,9 @@ namespace cmdv {
 
 			// Throwing back comparts from temp
 			void compartShower();
+
+			///Simple async update
+			int Update(int gens);
 
 			///Random update
 			int rUpdate(int gens);

@@ -22,8 +22,7 @@ namespace boost { namespace serialization {
 		ar	//& BOOST_SERIALIZATION_NVP(cell.updateable)
 			& BOOST_SERIALIZATION_NVP(cell.alive)
 			& BOOST_SERIALIZATION_NVP(cell.awake)
-			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA)
-			& BOOST_SERIALIZATION_NVP(cell.leftover);
+			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA);
 
 		//save metabolism for analytical purposes
 		{
@@ -72,7 +71,7 @@ namespace boost { namespace serialization {
 
 //declare version
 BOOST_CLASS_VERSION(cmdv::Compart, 1)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 2)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 3)
 
 #endif
 

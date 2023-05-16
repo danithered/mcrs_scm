@@ -11,7 +11,7 @@ using namespace std;
 				int par_quit = cmdv::QuitCond::qnone; // quitting condition. See: cdv::QuitCond
 				int par_maxtime = 2000000; //length of simulation
 
-				double par_MN = -0.005; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
+				double par_claimNorep = -0.005; //slope of metabolism - number_of_new_offsprings function (xintercept is leftover)
 				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
 				int par_num_input_content = 25; //number of replicators read from file to cells
@@ -98,7 +98,7 @@ int paramsToFile(const char* filename){
 	paramfile << "par_maxtime " << par_maxtime << std::endl;
 	paramfile << "par_poolsize " << par_poolsize << std::endl;
 	paramfile << "par_splitfrom " << par_splitfrom << std::endl;
-	paramfile << "par_MN " << par_MN << std::endl;
+	paramfile << "par_claimNorep " << par_claimNorep << std::endl;
 	paramfile << "par_num_input_content " << par_num_input_content << std::endl;
 	paramfile << "par_output_interval " << par_output_interval << std::endl;
 	paramfile << "par_save_interval " << par_save_interval << std::endl;
@@ -172,7 +172,7 @@ int Args(int argc, char **argv)
 			//else if(!strcmp(argv[i], "--par_init_grid")) option = 'S';
 			else if(!strcmp(argv[i], "--par_ll")) option = 'l';
 			else if(!strcmp(argv[i], "--par_sigma")) option = 'G';
-			else if(!strcmp(argv[i], "--par_MN")) option = 'M';
+			else if(!strcmp(argv[i], "--par_claimNorep")) option = 'M';
 			else if(!strcmp(argv[i], "--par_substitution")) option = 's';
 			else if(!strcmp(argv[i], "--par_insertion")) option = 'i';
 			else if(!strcmp(argv[i], "--par_deletion")) option = 'd';
@@ -316,7 +316,11 @@ int Args(int argc, char **argv)
 
 			case 'M':
 				if (++i == argc) return 1;
-				par_MN = atof(argv[i]);
+				par_claimNorep = atof(argv[i]);
+				if(par_claimNorep < 0) {
+					std::cerr << "ERROR at reading argoments: option " << option << ": has to be positive!" << std::endl;
+					return(-1);
+				}
 				continue;
 
 			/*case 'k':
