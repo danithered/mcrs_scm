@@ -56,9 +56,6 @@ namespace cmdv {
 			//kill replicator (CellContents own die() and storing it in wastbin)
 			void die(std::list<rnarep::CellContent>::iterator rep);
 
-			void sleep();
-			void wake();
-
 			//calculate metabolism around replicator
 			double M();
 
@@ -86,8 +83,6 @@ namespace cmdv {
 			int time;
 
 			Compart **comparts;
-			std::vector<Compart *> temp_comparts; //< daycare, temporary pool for child - compartments from split events
-			unsigned int used_temp; //< number of slots used in temp_comparts
 			unsigned int no_last_splits; //< number of splits in last update step
 			
 			std::string savedir;
@@ -128,9 +123,6 @@ namespace cmdv {
 			void autoCompartInput();
 			
 			//Updates
-
-			// Throwing back comparts from temp
-			void compartShower();
 
 			///Simple async update
 			int Update(int gens);

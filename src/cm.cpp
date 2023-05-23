@@ -26,35 +26,30 @@ namespace cmdv {
 	}
 
 	void Compart::clear(){
-		wake(); //to count properly, dormant cells have to be awaken
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		M(); //to refresh alive no_alive and no_replicators according to awake
 	}
 
 	int Compart::split(){
-		while(reps.size() > (unsigned int) par_splitfrom) {
-			//Compart *target = parent->get(this); //choose a random cell
-			//give it to temp
-			if(parent->used_temp == parent->temp_comparts.size()) {
-				parent->temp_comparts.push_back(new class Compart);
-				parent->temp_comparts.back()->parent = parent;
-			}
-			Compart *target = parent->temp_comparts[ (parent->used_temp)++ ];
-							     
-			std::list<rnarep::CellContent> *targetreps = &(target->reps);
+		if(reps.size() > (unsigned int) par_splitfrom) {
+			Compart *target = parent->get(); //choose a random cell
 
-			target->clear(); //kill cell - it was killed in compartShower
-			
-			//hypergeometric
-			for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
-				temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
-				if(gsl_rng_uniform(r) < 0.5) {
-					targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
-				} 
+			if(target == this){ // in case it should replicate to its own position it only looses half of its content
+				for(auto &rep : reps){
+					if(gsl_rng_uniform(r) < 0.5) die(rep);
+				}
+			} else { // overwriting other vesicules
+				target->clear(); //kill cell 
+				auto &targetreps = target->reps;
+				
+				// hypergeometric
+				for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
+					temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
+					if(gsl_rng_uniform(r) < 0.5) {
+						targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
+					} 
+				}
 			}
-
-			//target->split(); // no need as size cant exceed splitsize multiple times
-			target->sleep();
 			
 		}
 		return(0);
@@ -169,25 +164,23 @@ namespace cmdv {
 	}
 
 	void Compart::update(){
-		//if(updateable){
-			//replication, degradation and splitting only if cell is not empty
-			if(reps.size()){
-				//replication
-				auto degr_from = replication();
+		//replication, degradation and splitting only if cell is not empty
+		if(reps.size()){
+			//replication
+			auto degr_from = replication();
 
-				//DEGRADATION
-				for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
-					temp_rep = rep++; //to keep rep in the range of reps 
-					if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
+			//DEGRADATION
+			for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
+				temp_rep = rep++; //to keep rep in the range of reps 
+				if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
 //						no_deaths++;
-						die(temp_rep);
-					}
+					die(temp_rep);
 				}
-
-				//splitting
-				split();
 			}
-		//}
+
+			//splitting
+			split();
+		}
 	}
 
 	unsigned int CompartPool::discoverComparts(const char * sourcedir){
@@ -398,33 +391,35 @@ namespace cmdv {
 
 	///Random update
 	int CompartPool::rUpdate(int gens){
-		unsigned int iter=0;
-
 		//check if output is open
 		if(par_output_interval && !output) {
 			std::cerr << "ERROR: output not open" << std::endl;
 			return(-1);
 		}
 
-		//output/save in case of not init from start
-		if(time){
-			if(par_output_interval && (time % par_output_interval)) do_output();
-			if(par_save_interval && (time % par_save_interval)) save();
-		}
+		int mtime = 0;
+		for(mtime = time + gens; time < mtime; time++){ //updating generations
+			autoCompartInput();
 
-		for(int mtime = time + gens ; time < mtime && rnarep::CellContent::no_replicators; time++){ //updating generations
 			//outputs
 			if (par_output_interval && !(time % par_output_interval)) do_output();
 			if (par_save_interval && !(time % par_save_interval)) save();
 
-			for(iter = 0; iter < size; iter++){
-				//UPDATING
-				comparts[ gsl_rng_uniform_int(r, size) ]->update();
+			//UPDATING
+			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
+
+			// quit conditions
+			if(par_quit){
+				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
+				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
+				if(par_quit & qsplit) if(no_last_splits > 0) break; 
+				if(par_quit & qfull) {
+					unsigned int comp = 0;
+					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
+					if(comp == size) break;
+				}
+				if(par_quit & qalive) if(Compart::no_alive == size) break;
 			}
-//			std::cout << "Cycle " << time << ": number of total deaths: " << no_deaths << ", number of total births: " << no_births << std::endl;
-//			
-//			// after updates throw back new copmarts
-			compartShower();
 
 		}
 		
@@ -433,7 +428,9 @@ namespace cmdv {
 		if(par_save_interval) if(save()) return -2;
 
 
-		return rnarep::CellContent::no_replicators;
+		if(time < mtime) return(2); // quit condition triggered
+		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		else return(0);
 	}
 
 	//Update according to a random order (in every generation all cells will be updated)
