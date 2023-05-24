@@ -9,33 +9,28 @@ namespace cmdv {
 
 	std::list<rnarep::CellContent> Compart::wastebin;
 
-	Compart::Compart(){
-		parent = NULL;
-		alive=false;
-		awake=true;
-		//metabolism = 0;
-		reciproc_noEA = 1 / (double) par_noEA;
-	}
+	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _alive(false), changed_content(false){}
 
-	void Compart::operator =(Compart& origin){
+	/*void Compart::operator =(Compart& origin){
 		clear();
 		//for(auto rep = origin.reps.begin(); rep != origin.reps.end(); rep++){
 			reps.assign( origin.reps.begin(), origin.reps.end() ); 
 		//}
 		//no need to delete temp_compart, split() will do that anyway...
-	}
+	}*/
 
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
 		M(); //to refresh alive no_alive and no_replicators according to awake
 	}
 
-	int Compart::split(){
+	bool Compart::split(){
 		if(reps.size() > (unsigned int) par_splitfrom) {
 			Compart *target = parent->get(); //choose a random cell
 
 			if(target == this){ // in case it should replicate to its own position it only looses half of its content
-				for(auto &rep : reps){
+				//for(auto &rep : reps){
+				for(std::list<rnarep::CellContent>::iterator rep = reps.begin(); rep != reps.end(); ++rep){
 					if(gsl_rng_uniform(r) < 0.5) die(rep);
 				}
 			} else { // overwriting other vesicules
@@ -46,29 +41,35 @@ namespace cmdv {
 				for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
 					temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
 					if(gsl_rng_uniform(r) < 0.5) {
-						targetreps->splice(targetreps->begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
+						targetreps.splice(targetreps.begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
 					} 
 				}
+				target->M(); // to refresh no_alive
 			}
+			M(); // to refresh no_alive
 			
+			return true;
 		}
-		return(0);
+
+		return false;
 
 	}
 
 	void Compart::die(std::list<rnarep::CellContent>::iterator rep){
 		if(!rep->empty) rep->die();
 		wastebin.splice(wastebin.begin(), reps, rep);
-		
+		changed_content = true;
 	}
 
 	std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<rnarep::CellContent> &from){
 		reps.splice(reps.begin(), from, it);
+		changed_content=true;
 		return(reps.begin());
 	}
 
 	std::list<rnarep::CellContent>::iterator Compart::add(rnarep::CellContent rep){
 		reps.push_front(rep);
+		changed_content=true;
 		return(reps.begin());
 	}
 
@@ -78,6 +79,7 @@ namespace cmdv {
 		} else { //reuse some from wastebin
 			reps.splice(reps.begin(), wastebin, wastebin.begin() );
 		}
+		changed_content=true;
 
 		return( reps.begin() );
 		
@@ -85,47 +87,52 @@ namespace cmdv {
 	
 	std::list<rnarep::CellContent>::iterator Compart::add(std::string newseq){
 		
-		if(wastebin.empty()){ //have to create new
-			reps.emplace_front();
-		} else { //reuse some from wastebin
-			reps.splice(reps.begin(), wastebin, wastebin.begin() );
-		}
-
-//		if(newseq.size() < 1) std::cerr << "Warning: Compart::add(string): Something went wrong" << std::endl;
+		auto newrep = add();
 
 		//add new value
-		reps.front() = newseq;
+		*newrep = newseq;
 		
-		if (reps.front().seq.length() == 0) {
+		if ( newrep->seq.length() == 0) {
 			std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
-			die(reps.begin());
+			die( newrep );
 		}
 
-		return(reps.begin());
+		return( newrep );
+	}
+
+	inline bool Compart::alive() {
+		if (changed_content) M();
+		return _alive;
 	}
 
 	double Compart::M(){
 		double M = 1;
 
-		for(int a = 0; a < par_noEA; a++){
-			double akt = 0;
-			for(auto met = reps.begin(); met != reps.end(); met++){
-				// M(x) = prod(sum (a_i))
-				akt += met->geta(a) ;
+		if(reps.empty()){
+			M = 0;
+		} else {
+			for(int a = 0; a < par_noEA; a++){
+				double akt = 0;
+				for(auto met = reps.begin(); met != reps.end(); met++){
+					// M(x) = prod(sum (a_i))
+					akt += met->geta(a) ;
+				}
+				M *= akt;
 			}
-			M *= akt;
 		}
 		
 		//update alive and no_alive
-		if(alive != (bool) M){ //it has changed and...
-			if(M){ // ...new state is alive
+		if(_alive != (bool) M){ //it has changed and...
+			if((bool) M){ // ...new state is alive
 				no_alive++;
-				alive=true;
+				_alive=true;
 			} else { // ...new state is dead
 				no_alive--;
-				alive=false;
+				_alive=false;
 			}
 		}
+
+		changed_content = false;
 
 		return std::pow(M, reciproc_noEA);
 	}
@@ -145,24 +152,6 @@ namespace cmdv {
 		return(oldfirst);
 	}
 
-	void Compart::sleep(){
-		if(awake){
-			awake = false;
-			//if(M() > 0.0) {
-			//	no_alive--;
-			//}
-			rnarep::CellContent::no_replicators -= reps.size();
-		}
-	}
-
-	void Compart::wake(){
-		if(!awake){
-			awake = true;
-			//if(alive) no_alive++; // M() has been run at sleep()
-			rnarep::CellContent::no_replicators += reps.size();
-		}
-	}
-
 	void Compart::update(){
 		//replication, degradation and splitting only if cell is not empty
 		if(reps.size()){
@@ -179,7 +168,7 @@ namespace cmdv {
 			}
 
 			//splitting
-			split();
+			if( !split() ) M(); // in case of splitting no_alive is refreshed, if it did not happen, we should refresh it, as DEG may have changed it
 		}
 	}
 
@@ -224,8 +213,9 @@ namespace cmdv {
 	void CompartPool::autoCompartInput(){
 		auto match = bubblefiles.find(time);
 		if(match != bubblefiles.end()){ // if found
+			unsigned int cellno = 0;
 			for(auto input = match->second.begin(), end = match->second.end(); input != end; ++input){
-				compartFromFile(input->c_str());
+				compartFromFile(input->c_str(), cellno++);
 			}
 		}
 	}
@@ -240,7 +230,32 @@ namespace cmdv {
 		}
 
 		//get a random cell and empty it
-		auto target = *get();
+		auto target = get();
+		target->clear();
+
+		while(std::getline(file, line)){
+			std::istringstream linestream(line);
+			linestream >> word;
+			target->add(word);
+		}
+
+
+		return true;
+	}
+
+	bool CompartPool::compartFromFile(const char * infile, const unsigned int n){
+		if(n>=size) throw std::invalid_argument("n exceeds size!");
+
+		std::string line, word;
+		std::ifstream file(infile);
+
+		if(!file.is_open()) {
+			std::cerr << "ERROR: compartFromFile: file can not be opened!" << std::endl;
+			return false;
+		}
+
+		//get a cell and empty it
+		Compart *target = get(n);
 		target->clear();
 
 		while(std::getline(file, line)){
@@ -254,7 +269,7 @@ namespace cmdv {
 	}
 
 	// Constructor
-	CompartPool::CompartPool(int _size): size(_size), used_temp(0), no_last_splits(0){
+	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0){
 		time=0;
 		//saving_freq = 0;
 
@@ -262,19 +277,7 @@ namespace cmdv {
 		for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
 			*comp = new class Compart;
 			(*comp)->parent = this;
-
-			// add temp comparts too
-			temp_comparts.push_back(new class Compart);
-			temp_comparts.back()->parent = this;
 		}
-
-		//maximum number of new comparts is equal to number of comparts
-//				temp_comparts = new class Compart* [size*10];
-//				for(Compart **comp = temp_comparts, **endcomp = temp_comparts+size*10; comp != endcomp; comp++){
-//					*comp = new class Compart;
-//					(*comp)->parent = this;
-//				}
-		
 
 		//no_replicators = 0;
 
@@ -305,9 +308,6 @@ namespace cmdv {
 			for(unsigned int i = 0; i < size; ++i ){
 				delete comparts[i];
 			}
-			for(auto tc = temp_comparts.begin(); tc != temp_comparts.end(); ++tc){
-				delete *tc;
-			}
 			delete [] (comparts);
 			//delete [] (temp_comparts);
 		}
@@ -319,8 +319,8 @@ namespace cmdv {
 	}
 
 	///gives back pointer to random comp
-	inline Compart** CompartPool::get() {
-		return( comparts + gsl_rng_uniform_int(r, size) );
+	inline Compart* CompartPool::get() {
+		return( *(comparts + gsl_rng_uniform_int(r, size)) );
 	}
 
 	inline Compart* CompartPool::get(Compart *except) {
@@ -332,61 +332,6 @@ namespace cmdv {
 		/*compart* out = comparts + gsl_rng_uniform_int(r, size);
 		while(except == out) comparts + gsl_rng_uniform_int(r, size);
 		return(out);*/
-	}
-
-	void CompartPool::compartShower(){
-		unsigned int *order, numtemp = used_temp;
-
-		if(numtemp){
-			int temp = 0;
-			unsigned int iter = 0, target = 0;
-
-			//init order
-			order = new unsigned int[numtemp];
-			for(iter = 0; iter < numtemp; iter++){
-				order[iter] = iter;
-			}
-
-			// relocate them by random order
-			for(iter = 0; iter < numtemp; iter++){
-				target = gsl_rng_uniform_int(r, numtemp - iter); // child from daycare
-				cmdv::Compart **random_comp = get(); // to be written over
-
-				if (target) { //it changes with a value higher that itself
-					target += iter; //correct it to point to the absolute position
-					//switch targe and iter
-					temp = order[target];
-					order[ target ] = order[ iter ];
-					order[ iter ] = temp;
-					//do the stuff - owerwrite a random compart (get()) with the content of a temp_compart 
-					//temp is equaal to order[iter]
-					cmdv::Compart *tempc = temp_comparts[temp]; // tempc <- temp_comparts
-					temp_comparts[temp] = *random_comp; // temp_comparts <- comparts
-					*random_comp = tempc; // comparts <- tempc
-					
-					// kill compart in temp
-					temp_comparts[ temp ]->clear(); 
-					//temp_comparts[ temp ]->sleep(); //tell compart that had been "written over" to fall asleep
-				}
-				else { //it would change with itself so no change at all
-				       //do the stuff
-					//*get() = temp_comparts[ order[iter] ];
-
-					cmdv::Compart *tempc = temp_comparts[ order[iter] ]; // tempc <- temp_comparts
-					temp_comparts[ order[iter] ] = *random_comp; // temp_comparts <- comparts
-					*random_comp = tempc; // comparts <- tempc
-
-					// kill compart in temp
-					temp_comparts[ order[iter] ]->clear(); 
-					//temp_comparts[ order[iter] ]->sleep(); //tell compart that had been "written over" to fall asleep
-				}
-				(*random_comp)->wake();
-			}
-			delete [] (order);
-		}
-
-		no_last_splits = used_temp;
-		used_temp = 0;
 	}
 
 	///Random update
@@ -409,17 +354,7 @@ namespace cmdv {
 			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
 
 			// quit conditions
-			if(par_quit){
-				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
-				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
-				if(par_quit & qsplit) if(no_last_splits > 0) break; 
-				if(par_quit & qfull) {
-					unsigned int comp = 0;
-					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
-					if(comp == size) break;
-				}
-				if(par_quit & qalive) if(Compart::no_alive == size) break;
-			}
+			if(testQuit()) break;
 
 		}
 		
@@ -452,21 +387,8 @@ namespace cmdv {
 			//UPDATING
 			for(unsigned int iter = 0; iter < size; iter++) comparts[ iter ]->update();
 
-			// after updates throw back new copmarts
-			compartShower();
-
 			// quit conditions
-			if(par_quit){
-				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
-				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
-				if(par_quit & qsplit) if(no_last_splits > 0) break; 
-				if(par_quit & qfull) {
-					unsigned int comp = 0;
-					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
-					if(comp == size) break;
-				}
-				if(par_quit & qalive) if(Compart::no_alive == size) break;
-			}
+			if(testQuit()) break;
 
 		}
 
@@ -524,21 +446,8 @@ namespace cmdv {
 				}
 			}
 
-			// after updates throw back new copmarts
-			compartShower();
-
 			// quit conditions
-			if(par_quit){
-				if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) break;
-				if(par_quit & qcompart) if(Compart::no_alive == 0) break;
-				if(par_quit & qsplit) if(no_last_splits > 0) break; 
-				if(par_quit & qfull) {
-					unsigned int comp = 0;
-					while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
-					if(comp == size) break;
-				}
-				if(par_quit & qalive) if(Compart::no_alive == size) break;
-			}
+			if(testQuit()) break;
 
 		}
 
@@ -550,6 +459,23 @@ namespace cmdv {
 		if(time < mtime) return(2); // quit condition triggered
 		if(rnarep::CellContent::no_replicators) return(1); // it has died out
 		else return(0);
+	}
+	
+	bool CompartPool::testQuit() const {
+			if(!par_quit) return false;
+
+			if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) return true;
+			if(par_quit & qcompart) if(Compart::no_alive == 0) return true;
+			if(par_quit & qsplit) if(no_last_splits > 0) return true; 
+			if(par_quit & qfull) {
+				unsigned int comp = 0;
+				while( comp < size && !(comparts[comp]->reps.empty()) ) {++comp;} 
+				if(comp == size) return true;
+			}
+			if(par_quit & qalive) if(Compart::no_alive == size) return true;
+
+			return false;
+
 	}
 
 	int CompartPool::openOutputs(){
@@ -702,7 +628,7 @@ namespace cmdv {
 //			std::cout << "examined cell" << std::endl;
 			
 			//compart level calculations
-			if(cell->alive){
+			if(cell->alive()){
 				double metab = cell->M();
 				sum_M += metab;
 				sum_M2 += metab*metab;

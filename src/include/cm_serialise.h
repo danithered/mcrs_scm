@@ -18,17 +18,14 @@ namespace boost { namespace serialization {
 	//CellContent 
 	template<class Archive>
 	void serialize(Archive & ar, cmdv::Compart & cell, unsigned int){
+		double metabolism = cell.M();
+		bool is_alive = cell.alive();
+
 		ar	& BOOST_SERIALIZATION_NVP(cell.reps);
 		ar	//& BOOST_SERIALIZATION_NVP(cell.updateable)
-			& BOOST_SERIALIZATION_NVP(cell.alive)
-			& BOOST_SERIALIZATION_NVP(cell.awake)
-			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA);
-
-		//save metabolism for analytical purposes
-		{
-			double metabolism = cell.M();
-			ar & BOOST_SERIALIZATION_NVP(metabolism);
-		}
+			& BOOST_SERIALIZATION_NVP( is_alive )
+			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA)
+			& BOOST_SERIALIZATION_NVP(metabolism);
 
 	}
 
@@ -70,7 +67,7 @@ namespace boost { namespace serialization {
 }} //namespace boost::serialize
 
 //declare version
-BOOST_CLASS_VERSION(cmdv::Compart, 1)
+BOOST_CLASS_VERSION(cmdv::Compart, 2)
 BOOST_CLASS_VERSION(cmdv::CompartPool, 3)
 
 #endif

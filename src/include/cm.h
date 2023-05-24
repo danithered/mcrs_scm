@@ -34,8 +34,6 @@ namespace cmdv {
 			std::list<class rnarep::CellContent> reps;
 
 			class CompartPool *parent;
-			bool alive;
-			bool awake; 
 			static unsigned int no_alive;
 
 			//Functions
@@ -45,7 +43,7 @@ namespace cmdv {
 			~Compart(){}
 
 			///owerwrite one compart with other
-			void operator =(Compart& origin);
+			//void operator =(Compart& origin);
 
 			//add replicator
 			std::list<rnarep::CellContent>::iterator add(rnarep::CellContent rep);
@@ -58,13 +56,14 @@ namespace cmdv {
 
 			//calculate metabolism around replicator
 			double M();
+			inline bool alive();
 
 			//an update step on this cell
 			void update();
 			std::list<rnarep::CellContent>::iterator replication();
 
 			//split to two compartments
-			int split();
+			bool split();
 
 			//clear to ensure it can be rewritten during Moran process (other split)
 			void clear();
@@ -73,6 +72,8 @@ namespace cmdv {
 		//private:
 			static std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
+			bool _alive;
+			bool changed_content;
 	
 	};
 
@@ -110,7 +111,7 @@ namespace cmdv {
 			inline Compart* get(int cell);
 
 			/// gives back pointer to random comp
-			inline Compart** get();
+			inline Compart* get();
 			
 			/// gives back pointer to random comp (excluded arg)
 			inline Compart* get(Compart *except);
@@ -119,7 +120,8 @@ namespace cmdv {
 			void init_fromfile(char * infile); 
 
 			unsigned int discoverComparts(const char * sourcedir); 
-			bool compartFromFile(const char * infile);
+			bool compartFromFile(const char * infile); // import compart to random place
+			bool compartFromFile(const char * infile, const unsigned int n); // import compart to nth place
 			void autoCompartInput();
 			
 			//Updates
@@ -157,6 +159,8 @@ namespace cmdv {
 			std::vector<double> out_mfe; //mean mfe of replicators with no act, act0, act1, etc.
 
 			Bubbles bubblefiles;
+
+			bool testQuit() const; 
 	};
 	
 }
