@@ -30,8 +30,9 @@ namespace cmdv {
 
 			if(target == this){ // in case it should replicate to its own position it only looses half of its content
 				//for(auto &rep : reps){
-				for(std::list<rnarep::CellContent>::iterator rep = reps.begin(); rep != reps.end(); ++rep){
-					if(gsl_rng_uniform(r) < 0.5) die(rep);
+				for(std::list<rnarep::CellContent>::iterator rep = reps.begin(), temp_it; rep != reps.end(); ){
+					temp_it = rep++;
+					if(gsl_rng_uniform(r) < 0.5) die(temp_it);
 				}
 			} else { // overwriting other vesicules
 				target->clear(); //kill cell 
