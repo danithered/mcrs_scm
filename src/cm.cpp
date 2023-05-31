@@ -9,7 +9,7 @@ namespace cmdv {
 
 	std::list<rnarep::CellContent> Compart::wastebin;
 
-	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _alive(false), changed_content(false){}
+	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _M(0.0), _alive(false), changed_content(true){}
 
 	/*void Compart::operator =(Compart& origin){
 		clear();
@@ -45,10 +45,12 @@ namespace cmdv {
 						targetreps.splice(targetreps.begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
 					} 
 				}
+				changed_content = true; // target is flagged with changed content in clear()-s die()
 				target->M(); // to refresh no_alive
 			}
 			M(); // to refresh no_alive
 			
+			++(parent->no_last_splits);
 			return true;
 		}
 
@@ -107,46 +109,57 @@ namespace cmdv {
 	}
 
 	double Compart::M(){
-		double M = 1;
+		if(changed_content){
+			// calculate M
+			_M = 1;
 
-		if(reps.empty()){
-			M = 0;
-		} else {
-			for(int a = 0; a < par_noEA; a++){
-				double akt = 0;
-				for(auto met = reps.begin(); met != reps.end(); met++){
-					// M(x) = prod(sum (a_i))
-					akt += met->geta(a) ;
+			if(reps.empty()){
+				_M = 0;
+			} else {
+				for(int a = 0; a < par_noEA; a++){
+					double akt = 0;
+					for(auto met = reps.begin(); met != reps.end(); met++){
+						// M(x) = prod(sum (a_i))
+						akt += met->geta(a) ;
+					}
+					_M *= akt;
 				}
-				M *= akt;
+
+				_M = std::pow(_M, reciproc_noEA);
 			}
-		}
-		
-		//update alive and no_alive
-		if(_alive != (bool) M){ //it has changed and...
-			if((bool) M){ // ...new state is alive
-				no_alive++;
-				_alive=true;
-			} else { // ...new state is dead
-				no_alive--;
-				_alive=false;
+			
+			//update alive and no_alive
+			if(_alive != (bool) _M){ //it has changed and...
+				if((bool) _M){ // ...new state is alive
+					no_alive++;
+					_alive=true;
+				} else { // ...new state is dead
+					no_alive--;
+					_alive=false;
+				}
 			}
+
+			// flag it as calculated
+			changed_content = false;
+
 		}
 
-		changed_content = false;
-
-		return std::pow(M, reciproc_noEA);
+		return _M;
 	}
 
 	std::list<rnarep::CellContent>::iterator Compart::replication(){
 		auto oldfirst= reps.begin();
 		
-		for(auto &rep : reps){
-			const double CperM = par_claimNorep * M(), replicability = rep.getR();
-			if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
-				//replicate it!
-				auto newrep = add(); //now reps.begin() = newrep
-				newrep->replicate( rep );
+		if (const double met = M(); met != 0.0 ) {
+			const double CperM = par_claimNorep / met;
+			for(auto &rep : reps){
+				const double replicability = rep.getR();
+				if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
+					//replicate it!
+					++(parent->no_last_replicates);
+					auto newrep = add(); //now reps.begin() = newrep
+					newrep->replicate( rep );
+				}
 			}
 		}
 
@@ -163,7 +176,7 @@ namespace cmdv {
 			for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
 				temp_rep = rep++; //to keep rep in the range of reps 
 				if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
-//						no_deaths++;
+					++(parent->no_last_deaths);
 					die(temp_rep);
 				}
 			}
@@ -270,7 +283,7 @@ namespace cmdv {
 	}
 
 	// Constructor
-	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0){
+	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0){
 		time=0;
 		//saving_freq = 0;
 
@@ -352,6 +365,8 @@ namespace cmdv {
 			if (par_save_interval && !(time % par_save_interval)) save();
 
 			//UPDATING
+			no_last_splits = no_last_replicates = no_last_deaths = 0;
+			no_reps_last = rnarep::CellContent::no_replicators;
 			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
 
 			// quit conditions
@@ -568,7 +583,7 @@ namespace cmdv {
 			output << ";no_A" << a ;
 		}
 
-		output << std::endl;
+		output << ";percent_replicated;percent_died" << std::endl;
 
 		output.flush();
 
@@ -703,7 +718,7 @@ namespace cmdv {
 			output << ';' << out_noA[ea] ;
 		}
 
-		output << std::endl;
+		output << ';' << static_cast<double>(no_last_replicates)/no_reps_last << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
 
 		output.flush();
 

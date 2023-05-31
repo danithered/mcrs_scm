@@ -69,9 +69,10 @@ namespace cmdv {
 			void clear();
 
 
-		//private:
 			static std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
+		private:
+			double _M;
 			bool _alive;
 			bool changed_content;
 	
@@ -85,6 +86,8 @@ namespace cmdv {
 
 			Compart **comparts;
 			unsigned int no_last_splits; //< number of splits in last update step
+			unsigned int no_last_replicates;
+			unsigned int no_last_deaths;
 			
 			std::string savedir;
 
@@ -159,6 +162,7 @@ namespace cmdv {
 			std::vector<double> out_mfe; //mean mfe of replicators with no act, act0, act1, etc.
 
 			Bubbles bubblefiles;
+			unsigned int no_reps_last; // to store the number of replicators in previous generation
 
 			bool testQuit() const; 
 	};
