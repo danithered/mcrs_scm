@@ -88,6 +88,7 @@ namespace cmdv {
 			unsigned int no_last_splits; //< number of splits in last update step
 			unsigned int no_last_replicates;
 			unsigned int no_last_deaths;
+			unsigned int no_reps_last_in_alive; // to store the number of replicators in alive vesicules in previous generation
 			
 			std::string savedir;
 

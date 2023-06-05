@@ -11,7 +11,7 @@
  
 #define MAXLEN 300
 
-const char versioninfo[255] = "ver 3.1.0 new update strategy\0";
+const char versioninfo[255] = "ver 3.1.2 new update strategy, fixed output\0";
 
 extern int par_noEA;
 

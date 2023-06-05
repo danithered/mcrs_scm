@@ -150,7 +150,8 @@ namespace cmdv {
 	std::list<rnarep::CellContent>::iterator Compart::replication(){
 		auto oldfirst= reps.begin();
 		
-		if (const double met = M(); met != 0.0 ) {
+		if (const double met = M(); met != 0.0 ) { // is alive
+			(parent->no_reps_last_in_alive) += reps.size();
 			const double CperM = par_claimNorep / met;
 			for(auto &rep : reps){
 				const double replicability = rep.getR();
@@ -283,7 +284,7 @@ namespace cmdv {
 	}
 
 	// Constructor
-	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0){
+	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0), no_reps_last_in_alive(0), no_reps_last(0){
 		time=0;
 		//saving_freq = 0;
 
@@ -365,7 +366,7 @@ namespace cmdv {
 			if (par_save_interval && !(time % par_save_interval)) save();
 
 			//UPDATING
-			no_last_splits = no_last_replicates = no_last_deaths = 0;
+			no_reps_last_in_alive = no_last_splits = no_last_replicates = no_last_deaths = 0;
 			no_reps_last = rnarep::CellContent::no_replicators;
 			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
 
@@ -718,7 +719,7 @@ namespace cmdv {
 			output << ';' << out_noA[ea] ;
 		}
 
-		output << ';' << static_cast<double>(no_last_replicates)/no_reps_last << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
+		output << ';' << static_cast<double>(no_last_replicates)/no_reps_last_in_alive << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
 
 		output.flush();
 
