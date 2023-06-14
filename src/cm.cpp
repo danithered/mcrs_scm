@@ -167,14 +167,39 @@ namespace cmdv {
 		return(oldfirst);
 	}
 
+	/// replication method with predetermined metabolism. Return value is if it is above splitsize.
+	bool Compart::replication(const double met){
+		if(met == 0.0) return false; // if there is no metabolism there can be no replication, therefor (if everything went ok) can be no splitting
+
+		// make order map
+		std::map<const double, rnarep::CellContent *> reps_by_R;
+
+		for ()
+
+
+			(parent->no_reps_last_in_alive) += reps.size();
+			const double CperM = par_claimNorep / met;
+			for(auto &rep : reps){
+				const double replicability = rep.getR();
+				if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
+					//replicate it!
+					++(parent->no_last_replicates);
+					auto newrep = add(); //now reps.begin() = newrep
+					newrep->replicate( rep );
+				}
+			}
+
+		return(oldfirst);
+	}
+
 	void Compart::update(){
 		//replication, degradation and splitting only if cell is not empty
 		if(reps.size()){
-			//replication
-			auto degr_from = replication();
+			// Metabolism
+			const double metab = M();
 
 			//DEGRADATION
-			for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
+			while(std::list<rnarep::CellContent>::iterator rep = reps.begin(), temp_rep; rep != reps.end()){
 				temp_rep = rep++; //to keep rep in the range of reps 
 				if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
 					++(parent->no_last_deaths);
@@ -182,8 +207,11 @@ namespace cmdv {
 				}
 			}
 
-			//splitting
-			if( !split() ) M(); // in case of splitting no_alive is refreshed, if it did not happen, we should refresh it, as DEG may have changed it
+			//replication
+			replication_withM(metab);
+
+				//splitting
+				if( !split() ) M(); // in case of splitting no_alive is refreshed, if it did not happen, we should refresh it, as DEG may have changed it
 		}
 	}
 
