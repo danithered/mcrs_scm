@@ -80,7 +80,8 @@ class reBrokenStick {
 				sum += A[i];
 			return sum;
 		    }*/
-		FenwickNode<NodeVal> * operator[] (int i) ;
+		//FenwickNode<NodeVal> * operator[] (int i) ;
+		FenwickNode<NodeVal> & operator[] (int i) ;
 	private:
 		unsigned int used; // number of nodes used
 		std::vector<FenwickNode<int>> tree;

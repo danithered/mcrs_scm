@@ -142,9 +142,14 @@ void reBrokenStick<NodeVal>::print(){
 	}
 }
 
+//template <typename NodeVal>
+//FenwickNode<NodeVal>* reBrokenStick<NodeVal>::operator[] (int i) {
+//	return &tree[i];
+//}
+
 template <typename NodeVal>
-FenwickNode<NodeVal>* reBrokenStick<NodeVal>::operator[] (int i) {
-	return &tree[i];
+FenwickNode<NodeVal>& reBrokenStick<NodeVal>::operator[] (int i) {
+	return tree[i];
 }
 
 template <typename NodeVal>
@@ -202,10 +207,14 @@ int main(){
 	x.print();
 	std::cout << "draws:\t" << x.draw(0.1) << '\t' << x.draw(0.4) << '\t' << x.draw(0.9) << std::endl;
 
-	auto p = x[2];
-	std::cout << **p << '\t' << p->get_branch() << '\t' << p->get_p() << std::endl;
+	auto& p = x[2];
 	
-	p->update(5);
+	//std::cout << **p << '\t' << p->get_branch() << '\t' << p->get_p() << std::endl;
+	std::cout << *p << '\t' << p.get_branch() << '\t' << p.get_p() << std::endl;
+	
+	//p->update(5);
+	p.update(5);
+	
 	x.print();
 	
 
