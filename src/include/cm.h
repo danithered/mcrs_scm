@@ -5,6 +5,7 @@
 #include "randomgen.h"
 #include "dv_tools.h"
 #include "rnarep.h"
+#include "broken.hpp"
 #include <cmath>
 #include <iostream>
 #include <cstring>
@@ -24,14 +25,32 @@
 namespace fs = std::filesystem;
 
 namespace cmdv {
+
 	typedef std::map<unsigned int, std::list<std::string> > Bubbles;
 
 	enum QuitCond{qnone=0, qreplicator=1, qcompart=2, qsplit=4, qfull=8, qalive=16};
 
 	class Compart{
 		public:
+			class ScmRep : public rnarep::CellContent{
+					Compart* vesicule;
+					FenwickNode<ScmRep*> *deathcount;
+					FenwickNode<ScmRep*> *repcount;
+					
+				public: 
+					void setBindings(FenwickNode<ScmRep*> *repBS, FenwickNode<ScmRep*> *deathBS);
+					void assignCompart(Compart * comp);
+					void updateDeg() const;
+					void updateM() const;
+					void updateRep(const double met) ;
+					void degrade();
+					
+					ScmRep(): rnarep::CellContent(), vesicule(nullptr), deathcount(nullptr), repcount(nullptr){}
+
+			};
+
 			//Compart content
-			std::list<class rnarep::CellContent> reps;
+			std::list<class ScmRep*> reps;
 
 			class CompartPool *parent;
 			static unsigned int no_alive;
@@ -46,13 +65,13 @@ namespace cmdv {
 			//void operator =(Compart& origin);
 
 			//add replicator
-			std::list<rnarep::CellContent>::iterator add(rnarep::CellContent rep);
-			std::list<rnarep::CellContent>::iterator add();
-			std::list<rnarep::CellContent>::iterator add(std::string newseq);
-			std::list<rnarep::CellContent>::iterator add(std::list<rnarep::CellContent>::iterator it, std::list<rnarep::CellContent> &from);
+			std::list<ScmRep*>::iterator add(ScmRep* rep);
+			ScmRep* add();
+			ScmRep* add(std::string newseq);
+			//std::list<ScmRep>::iterator add(std::list<ScmRep>::iterator it, std::list<ScmRep> &from);
 
 			//kill replicator (CellContents own die() and storing it in wastbin)
-			void die(std::list<rnarep::CellContent>::iterator rep);
+			void die(ScmRep* rep);
 
 			//calculate metabolism around replicator
 			double M();
@@ -60,7 +79,7 @@ namespace cmdv {
 
 			//an update step on this cell
 			void update();
-			std::list<rnarep::CellContent>::iterator replication();
+			std::list<ScmRep*>::iterator replication();
 
 			//split to two compartments
 			bool split();
@@ -68,13 +87,10 @@ namespace cmdv {
 			//clear to ensure it can be rewritten during Moran process (other split)
 			void clear();
 
-
-			static std::list<class rnarep::CellContent> wastebin;
 			double reciproc_noEA;
 		private:
 			double _M;
 			bool _alive;
-			bool changed_content;
 	
 	};
 
@@ -85,6 +101,9 @@ namespace cmdv {
 			int time;
 
 			Compart **comparts;
+			Compart::ScmRep *replicators;
+			std::vector<Compart::ScmRep *> rep_stack;
+
 			unsigned int no_last_splits; //< number of splits in last update step
 			unsigned int no_last_replicates;
 			unsigned int no_last_deaths;

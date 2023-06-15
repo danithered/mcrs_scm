@@ -198,7 +198,7 @@ void reBrokenStick<NodeVal>::updateRelations() {
 	for(int i = 0; i < tree.size(); ++i) updateRelation(i);
 }
 
-int main(){
+/*int main(){
 
 	std::vector<std::pair<double, int>> vals{{000, 100},{0,101},{1,102},{0,103},{0,104}, {2,105}, {0,106}, {1,107}, {1,108}, {000, 109},{0,110},{0,111},{0,112},{0,113}, {0,114}, {0,115}, {0,116}}; 
 	reBrokenStick<int> x(16);
@@ -220,3 +220,5 @@ int main(){
 
     return 0;
 }
+*/
+

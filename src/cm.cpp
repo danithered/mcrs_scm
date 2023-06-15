@@ -7,9 +7,44 @@ namespace cmdv {
 	
 	unsigned int Compart::no_alive = 0;
 
-	std::list<rnarep::CellContent> Compart::wastebin;
+	inline void Compart::ScmRep::setBindings(FenwickNode<ScmRep*> *repBS, FenwickNode<ScmRep*> *deathBS){
+		deathcount = deathBS;
+		repcount = deathBS;
+	}
 
-	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _M(0.0), _alive(false), changed_content(true){}
+	// from: removes itself if it does not comes from stack
+	// to: assotiates with it both ways
+	inline void Compart::ScmRep::assignCompart(Compart * comp){
+		if(vesicule == comp) return;
+		if(vesicule != nullptr){
+			vesicule->reps.remove(this);
+		}
+
+		if(comp == nullptr){
+			vesicule->parent->rep_stack.push_back(this);
+		} else {
+			comp->reps.push_back(this);
+		}
+
+		vesicule = comp;
+
+
+
+	}
+
+	void Compart::ScmRep::updateDeg() const{
+		deathcount->update(Pdeg);
+	}
+
+	void Compart::ScmRep::updateM() const{
+		vesicule->M();
+	}
+
+	void Compart::ScmRep::updateRep(const double met) {
+		repcount->update(met*getR());
+	}
+
+	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _M(0.0), _alive(false){}
 
 	/*void Compart::operator =(Compart& origin){
 		clear();
@@ -20,8 +55,8 @@ namespace cmdv {
 	}*/
 
 	void Compart::clear(){
-		for(auto rep = reps.begin(); rep != reps.end(); ) die(rep++);
-		M(); //to refresh alive no_alive and no_replicators according to awake
+		for(auto rep = reps.begin(); rep != reps.end(); ++rep) die(*rep);
+		M(); //to refresh alive no_alive and brokenSticks
 	}
 
 	bool Compart::split(){
@@ -30,22 +65,21 @@ namespace cmdv {
 
 			if(target == this){ // in case it should replicate to its own position it only looses half of its content
 				//for(auto &rep : reps){
-				for(std::list<rnarep::CellContent>::iterator rep = reps.begin(), temp_it; rep != reps.end(); ){
-					temp_it = rep++;
-					if(gsl_rng_uniform(r) < 0.5) die(temp_it);
+				for(std::list<Compart::ScmRep*>::iterator rep = reps.begin(); rep != reps.end(); ){
+					Compart::ScmRep *temp = *(rep++);
+					if(gsl_rng_uniform(r) < 0.5) die(temp);
 				}
 			} else { // overwriting other vesicules
 				target->clear(); //kill cell 
 				auto &targetreps = target->reps;
 				
 				// hypergeometric
-				for(std::list<rnarep::CellContent>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
+				for(std::list<Compart::ScmRep*>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
 					temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
 					if(gsl_rng_uniform(r) < 0.5) {
-						targetreps.splice(targetreps.begin(), reps, temp_it); //splice puts an elment of a list to an other. Args: iterator target pos, origin list, origin iterator to be transferred
+						(**temp_it).assignCompart(target);
 					} 
 				}
-				changed_content = true; // target is flagged with changed content in clear()-s die()
 				target->M(); // to refresh no_alive
 			}
 			M(); // to refresh no_alive
@@ -58,42 +92,46 @@ namespace cmdv {
 
 	}
 
-	void Compart::die(std::list<rnarep::CellContent>::iterator rep){
-		if(!rep->empty) rep->die();
-		wastebin.splice(wastebin.begin(), reps, rep);
-		changed_content = true;
+	void Compart::ScmRep::degrade(){
+		if(!empty) die(); // make it an empty replicator
+		vesicule->M(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
+		updateDeg(); // let brokenStick know about the loss
+		assignCompart(nullptr);
 	}
 
-	std::list<rnarep::CellContent>::iterator Compart::add(std::list<rnarep::CellContent>::iterator it, std::list<rnarep::CellContent> &from){
-		reps.splice(reps.begin(), from, it);
-		changed_content=true;
-		return(reps.begin());
+	void Compart::die(Compart::ScmRep *rep){
+		if(!rep->empty) rep->die(); // make it an empty replicator
+		rep->updateDeg(); // let brokenStick know about the loss
+		rep->updateRep(0.0); // let brokenStick know about the loss
+		rep->assignCompart(nullptr);
 	}
 
-	std::list<rnarep::CellContent>::iterator Compart::add(rnarep::CellContent rep){
+//	std::list<Compart::ScmRep>::iterator Compart::add(std::list<Compart::ScmRep>::iterator it, std::list<Compart::ScmRep> &from){
+//		reps.splice(reps.begin(), from, it);
+//		return(reps.begin());
+//	}
+
+	std::list<Compart::ScmRep*>::iterator Compart::add(Compart::ScmRep *rep){
 		reps.push_front(rep);
-		changed_content=true;
 		return(reps.begin());
 	}
 
-	std::list<rnarep::CellContent>::iterator Compart::add(){
-		if(wastebin.empty()){ //have to create new
-			reps.emplace_front();
-		} else { //reuse some from wastebin
-			reps.splice(reps.begin(), wastebin, wastebin.begin() );
-		}
-		changed_content=true;
+	Compart::ScmRep* Compart::add(){
+		reps.push_front(parent->rep_stack.back()); // get empty replicator
+		parent->rep_stack.pop_back(); // delete from stack
+					      
+		reps.front()->assignCompart(this); // let it know where it has gotten to		
 
-		return( reps.begin() );
-		
+		return( reps.front() );
 	}
 	
-	std::list<rnarep::CellContent>::iterator Compart::add(std::string newseq){
+	Compart::ScmRep* Compart::add(std::string newseq){
 		
 		auto newrep = add();
 
 		//add new value
-		*newrep = newseq;
+		//*dynamic_cast<rnarep::CellContent*>(&*newrep) = newseq;
+		*static_cast<rnarep::CellContent*>(newrep) = newseq;
 		
 		if ( newrep->seq.length() == 0) {
 			std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
@@ -104,62 +142,57 @@ namespace cmdv {
 	}
 
 	inline bool Compart::alive() {
-		if (changed_content) M();
 		return _alive;
 	}
 
+	// M() is suposed to be called every time when changed
 	double Compart::M(){
-		if(changed_content){
-			// calculate M
-			_M = 1;
+		// calculate M
+		_M = 1;
 
-			if(reps.empty()){
-				_M = 0;
-			} else {
-				for(int a = 0; a < par_noEA; a++){
-					double akt = 0;
-					for(auto met = reps.begin(); met != reps.end(); met++){
-						// M(x) = prod(sum (a_i))
-						akt += met->geta(a) ;
-					}
-					_M *= akt;
+		if(reps.empty()){
+			_M = 0;
+		} else {
+			for(int a = 0; a < par_noEA; a++){
+				double akt = 0;
+				for(auto &rep : reps){
+					// M(x) = prod(sum (a_i))
+					akt += rep->geta(a) ;
 				}
-
-				_M = std::pow(_M, reciproc_noEA);
-			}
-			
-			//update alive and no_alive
-			if(_alive != (bool) _M){ //it has changed and...
-				if((bool) _M){ // ...new state is alive
-					no_alive++;
-					_alive=true;
-				} else { // ...new state is dead
-					no_alive--;
-					_alive=false;
-				}
+				_M *= akt;
 			}
 
-			// flag it as calculated
-			changed_content = false;
-
+			_M = std::pow(_M, reciproc_noEA);
 		}
+		
+		//update alive and no_alive
+		if(_alive != (bool) _M){ //it has changed and...
+			if((bool) _M){ // ...new state is alive
+				no_alive++;
+				_alive=true;
+			} else { // ...new state is dead
+				no_alive--;
+				_alive=false;
+			}
+		}
+
 
 		return _M;
 	}
 
-	std::list<rnarep::CellContent>::iterator Compart::replication(){
+	std::list<Compart::ScmRep*>::iterator Compart::replication(){
 		auto oldfirst= reps.begin();
 		
 		if (const double met = M(); met != 0.0 ) { // is alive
 			(parent->no_reps_last_in_alive) += reps.size();
 			const double CperM = par_claimNorep / met;
 			for(auto &rep : reps){
-				const double replicability = rep.getR();
+				const double replicability = rep->getR();
 				if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
 					//replicate it!
 					++(parent->no_last_replicates);
 					auto newrep = add(); //now reps.begin() = newrep
-					newrep->replicate( rep );
+					newrep->replicate( *static_cast<rnarep::CellContent*>(rep) );
 				}
 			}
 		}
@@ -174,8 +207,8 @@ namespace cmdv {
 			auto degr_from = replication();
 
 			//DEGRADATION
-			for(std::list<rnarep::CellContent>::iterator rep = degr_from, temp_rep; rep != reps.end(); ){
-				temp_rep = rep++; //to keep rep in the range of reps 
+			for(std::list<Compart::ScmRep*>::iterator rep = degr_from; rep != reps.end(); ){
+				Compart::ScmRep *temp_rep = *(rep++); //to keep rep in the range of reps 
 				if(temp_rep->Pdeg > gsl_rng_uniform(r) ) {
 					++(parent->no_last_deaths);
 					die(temp_rep);
@@ -294,7 +327,8 @@ namespace cmdv {
 			(*comp)->parent = this;
 		}
 
-		//no_replicators = 0;
+		replicators = new class Compart::ScmRep[size*(par_splitfrom-1)+1];
+		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) rep_stack.push_back(ptr);
 
 //				std::cout << "Basic Constructor Called" << std::endl;
 	}
@@ -306,7 +340,7 @@ namespace cmdv {
 
 		if(!file.is_open()) std::cerr << "ERROR: init_fromfile: file can not be opened!" << std::endl;
 
-		rnarep::CellContent::no_replicators = 0; //clearing number of replicators 
+		Compart::ScmRep::no_replicators = 0; //clearing number of replicators 
 
 		for(unsigned int cnum = 0; cnum < size; ++cnum){
 			for(int no_input = par_num_input_content; no_input-- && std::getline(file, line); ){
@@ -324,6 +358,7 @@ namespace cmdv {
 				delete comparts[i];
 			}
 			delete [] (comparts);
+			delete [] (replicators);
 			//delete [] (temp_comparts);
 		}
 //				std::cout << "Deconstructor Called" << std::endl;
@@ -367,7 +402,7 @@ namespace cmdv {
 
 			//UPDATING
 			no_reps_last_in_alive = no_last_splits = no_last_replicates = no_last_deaths = 0;
-			no_reps_last = rnarep::CellContent::no_replicators;
+			no_reps_last = Compart::ScmRep::no_replicators;
 			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
 
 			// quit conditions
@@ -381,7 +416,7 @@ namespace cmdv {
 
 
 		if(time < mtime) return(2); // quit condition triggered
-		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		if(Compart::ScmRep::no_replicators) return(1); // it has died out
 		else return(0);
 	}
 
@@ -414,7 +449,7 @@ namespace cmdv {
 
 
 		if(time < mtime) return(2); // quit condition triggered
-		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		if(Compart::ScmRep::no_replicators) return(1); // it has died out
 		else return(0);
 	}
 
@@ -436,7 +471,7 @@ namespace cmdv {
 			order[iter] = iter;
 		}
 
-		//for(int mtime = time + gens ; time < mtime && (Compart::no_alive || rnarep::CellContent::no_replicators) ; time++){ //updating generations
+		//for(int mtime = time + gens ; time < mtime && (Compart::no_alive || Compart::ScmRep::no_replicators) ; time++){ //updating generations
 		int mtime=0; // so it can detect quit condition 
 		for(mtime = time + gens ; time < mtime ; time++){ //updating generations
 			autoCompartInput();
@@ -474,14 +509,14 @@ namespace cmdv {
 		delete [] (order);
 
 		if(time < mtime) return(2); // quit condition triggered
-		if(rnarep::CellContent::no_replicators) return(1); // it has died out
+		if(Compart::ScmRep::no_replicators) return(1); // it has died out
 		else return(0);
 	}
 	
 	bool CompartPool::testQuit() const {
 			if(!par_quit) return false;
 
-			if(par_quit & qreplicator) if(rnarep::CellContent::no_replicators == 0) return true;
+			if(par_quit & qreplicator) if(Compart::ScmRep::no_replicators == 0) return true;
 			if(par_quit & qcompart) if(Compart::no_alive == 0) return true;
 			if(par_quit & qsplit) if(no_last_splits > 0) return true; 
 			if(par_quit & qfull) {
@@ -652,7 +687,7 @@ namespace cmdv {
 			}
 
 			//replicators in compart
-			for(auto rep = cell->reps.begin(); rep != cell->reps.end(); rep++){ // iterating tru reps in cell
+			for(auto &rep : cell->reps){ // iterating tru reps in cell
 				//how much activities does it have?
 				int no_acts = rep->get_no_acts();
 //				if(no_acts >= out_noA.size()){
@@ -694,7 +729,7 @@ namespace cmdv {
 		//outputting
 		///CompartPool and Compart level variables
 		output << time << ';' 						//time
-			<< rnarep::CellContent::no_replicators << ';' 		//no_replicators
+			<< Compart::ScmRep::no_replicators << ';' 		//no_replicators
 			<< Compart::no_alive << ';' 				//no_alive
 			<< no_last_splits << ';' 				
 			<< (Compart::no_alive?(sum_M/(double)Compart::no_alive):0) << ';' 		//mean_M

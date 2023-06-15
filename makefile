@@ -15,10 +15,10 @@ CFLAGS=-I$(IDIR) `pkg-config --cflags gsl` -O3 -pthread -I/home/danielred/packag
 
 LIBS=-lm `pkg-config --libs gsl` -L/home/danielred/packages/ViennaRNA/lib -fno-lto -Wl,-fno-lto -lRNA -fopenmp -lgsl -lgslcblas -lpthread -lstdc++ -fopenmp # for RNAlib 2.1.5
 
-_DEPS = randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h rnarep_serialise.h cm_serialise.h 
+_DEPS = randomgen.h dv_tools.h parameters.h rnarep.h annot.h cm.h rnarep_serialise.h cm_serialise.h broken.hpp 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o cm.o
+_OBJ = main.o dv_tools.o parameters.o rnarep.o annot.o randomgen.o cm.o broken.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 _OBJ_test = test.o annot.o parameters.o dv_tools.o bitmuveletek.o 

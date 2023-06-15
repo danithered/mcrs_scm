@@ -7,6 +7,8 @@
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/list.hpp>
+#include "cm.h"
+#include "rnarep.h"
 #include "rnarep_serialise.h"
 
 //declare to split serilize to save/load
@@ -63,12 +65,19 @@ namespace boost { namespace serialization {
 		}
 
 	}
+
+	template<class Archive>
+	void save(Archive & ar, const cmdv::Compart::ScmRep & repl, unsigned int i){
+		save(ar, static_cast<const rnarep::CellContent&>(repl), i);
+	}
 	
 }} //namespace boost::serialize
 
 //declare version
-BOOST_CLASS_VERSION(cmdv::Compart, 2)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 3)
+BOOST_SERIALIZATION_SPLIT_FREE(cmdv::Compart::ScmRep)
+BOOST_CLASS_VERSION(cmdv::Compart, 3)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 4)
+BOOST_CLASS_VERSION(cmdv::Compart::ScmRep, 3)
 
 #endif
 
