@@ -6,8 +6,8 @@ namespace cmdv {
 	//int no_deaths=0;
 	
 	unsigned int Compart::no_alive = 0;
-
-	inline void Compart::ScmRep::setBindings(FenwickNode<ScmRep*> *repBS, FenwickNode<ScmRep*> *deathBS){
+	
+	inline void Compart::ScmRep::setBindings(broken::FenwickNode<ScmRep*> *repBS, broken::FenwickNode<ScmRep*> *deathBS){
 		deathcount = deathBS;
 		repcount = deathBS;
 	}
@@ -33,7 +33,7 @@ namespace cmdv {
 	}
 
 	void Compart::ScmRep::updateDeg() const{
-		deathcount->update(Pdeg);
+//		deathcount->update(Pdeg);
 	}
 
 	void Compart::ScmRep::updateM() const{
@@ -41,7 +41,7 @@ namespace cmdv {
 	}
 
 	void Compart::ScmRep::updateRep(const double met) {
-		repcount->update(met*getR());
+//		repcount->update(met*getR());
 	}
 
 	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _M(0.0), _alive(false){}
@@ -317,7 +317,7 @@ namespace cmdv {
 	}
 
 	// Constructor
-	CompartPool::CompartPool(int _size): size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0), no_reps_last_in_alive(0), no_reps_last(0){
+	CompartPool::CompartPool(int _size): degpool(1), size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0), no_reps_last_in_alive(0), no_reps_last(0){
 		time=0;
 		//saving_freq = 0;
 

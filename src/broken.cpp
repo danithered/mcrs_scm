@@ -1,6 +1,6 @@
 #include <broken.hpp>
 
-
+namespace broken{
 template <typename NodeVal>
 void FenwickNode<NodeVal>::add(const double value){
 	_add(value);
@@ -77,7 +77,7 @@ double FenwickNode<NodeVal>::dummyCumsum(){
 	return(sum);
 }
 
-
+/*
 template <typename NodeVal>
 reBrokenStick<NodeVal>::reBrokenStick(unsigned int _size): used(0), tree(0){
 	init(_size);
@@ -105,7 +105,7 @@ void reBrokenStick<NodeVal>::init(unsigned int newsize){
 		}
 	}
 }
-
+*/
 template <typename NodeVal>
 void reBrokenStick<NodeVal>::push_back(double p, int val){ 
 	//print();
@@ -197,28 +197,38 @@ template <typename NodeVal>
 void reBrokenStick<NodeVal>::updateRelations() {
 	for(int i = 0; i < tree.size(); ++i) updateRelation(i);
 }
+}
+/*
+struct Tester{
+	Tester(): data(5){}
+	reBrokenStick<char> data;
+	void doit(){data[0].update(6);}
+};
 
-/*int main(){
+int main(){
 
-	std::vector<std::pair<double, int>> vals{{000, 100},{0,101},{1,102},{0,103},{0,104}, {2,105}, {0,106}, {1,107}, {1,108}, {000, 109},{0,110},{0,111},{0,112},{0,113}, {0,114}, {0,115}, {0,116}}; 
-	reBrokenStick<int> x(16);
-	for(auto & [p, val] : vals ){x.push_back(p, val);}
+//	std::vector<std::pair<double, int>> vals{{000, 100},{0,101},{1,102},{0,103},{0,104}, {2,105}, {0,106}, {1,107}, {1,108}, {000, 109},{0,110},{0,111},{0,112},{0,113}, {0,114}, {0,115}, {0,116}}; 
+//	reBrokenStick<int> x(16);
+//	for(auto & [p, val] : vals ){x.push_back(p, val);}
 	
-	x.print();
-	std::cout << "draws:\t" << x.draw(0.1) << '\t' << x.draw(0.4) << '\t' << x.draw(0.9) << std::endl;
+//	x.print();
+//	std::cout << "draws:\t" << x.draw(0.1) << '\t' << x.draw(0.4) << '\t' << x.draw(0.9) << std::endl;
 
-	auto& p = x[2];
+//	auto& p = x[2];
 	
 	//std::cout << **p << '\t' << p->get_branch() << '\t' << p->get_p() << std::endl;
-	std::cout << *p << '\t' << p.get_branch() << '\t' << p.get_p() << std::endl;
+//	std::cout << *p << '\t' << p.get_branch() << '\t' << p.get_p() << std::endl;
 	
 	//p->update(5);
-	p.update(5);
+//	p.update(5);
 	
-	x.print();
+//	x.print();
+
+	Tester x;
+	x.doit();
 	
 
     return 0;
 }
-*/
 
+*/

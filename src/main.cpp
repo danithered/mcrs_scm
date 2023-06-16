@@ -1,5 +1,7 @@
 #include <iostream>
 //#include <ctime>
+#include "broken.hpp"
+#include "include/cm.h"
 #include "randomgen.h"
 #include "cm.h"
 #include "parameters.h"
@@ -15,6 +17,7 @@ using namespace std;
  -3: rng initialisation
 */
 int main(int argc, char *argv[]) {
+	broken::reBrokenStick<int> myx(1);
 	//Argoments
 	if ( Args(argc, argv) ) {
 		return(-1);

@@ -34,11 +34,11 @@ namespace cmdv {
 		public:
 			class ScmRep : public rnarep::CellContent{
 					Compart* vesicule;
-					FenwickNode<ScmRep*> *deathcount;
-					FenwickNode<ScmRep*> *repcount;
+					broken::FenwickNode<ScmRep*> *deathcount;
+					broken::FenwickNode<ScmRep*> *repcount;
 					
 				public: 
-					void setBindings(FenwickNode<ScmRep*> *repBS, FenwickNode<ScmRep*> *deathBS);
+					void setBindings(broken::FenwickNode<ScmRep*> *repBS, broken::FenwickNode<ScmRep*> *deathBS);
 					void assignCompart(Compart * comp);
 					void updateDeg() const;
 					void updateM() const;
@@ -103,6 +103,7 @@ namespace cmdv {
 			Compart **comparts;
 			Compart::ScmRep *replicators;
 			std::vector<Compart::ScmRep *> rep_stack;
+			broken::reBrokenStick<Compart::ScmRep*> degpool;
 
 			unsigned int no_last_splits; //< number of splits in last update step
 			unsigned int no_last_replicates;
@@ -120,7 +121,7 @@ namespace cmdv {
 			CompartPool(int _size=300);
 			
 			//Constructor 2 - for deserialisation
-			CompartPool() {}
+			CompartPool():degpool(1) {}
 			
 			//Destructor
 			~CompartPool();
