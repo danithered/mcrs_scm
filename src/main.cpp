@@ -17,7 +17,6 @@ using namespace std;
  -3: rng initialisation
 */
 int main(int argc, char *argv[]) {
-	broken::reBrokenStick<int> myx(1);
 	//Argoments
 	if ( Args(argc, argv) ) {
 		return(-1);
