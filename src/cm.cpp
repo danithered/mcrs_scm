@@ -37,14 +37,14 @@ namespace cmdv {
 	}
 
 	void Compart::ScmRep::updateM() const{
-		vesicule->M();
+		vesicule->refresh_M();
 	}
 
 	void Compart::ScmRep::updateRep(const double met) {
 //		repcount->update(met*getR());
 	}
 
-	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), _M(0.0), _alive(false){}
+	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), M(0.0), _alive(false){}
 
 	/*void Compart::operator =(Compart& origin){
 		clear();
@@ -56,7 +56,7 @@ namespace cmdv {
 
 	void Compart::clear(){
 		for(auto rep = reps.begin(); rep != reps.end(); ++rep) die(*rep);
-		M(); //to refresh alive no_alive and brokenSticks
+		refresh_M(); //to refresh alive no_alive 
 	}
 
 	bool Compart::split(){
@@ -71,7 +71,6 @@ namespace cmdv {
 				}
 			} else { // overwriting other vesicules
 				target->clear(); //kill cell 
-				auto &targetreps = target->reps;
 				
 				// hypergeometric
 				for(std::list<Compart::ScmRep*>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
@@ -80,9 +79,9 @@ namespace cmdv {
 						(**temp_it).assignCompart(target);
 					} 
 				}
-				target->M(); // to refresh no_alive
+				target->refresh_M(); // to refresh no_alive
 			}
-			M(); // to refresh no_alive
+			refresh_M(); // to refresh no_alive
 			
 			++(parent->no_last_splits);
 			return true;
@@ -92,9 +91,13 @@ namespace cmdv {
 
 	}
 
-	void Compart::ScmRep::degrade(){
+	void Compart::ScmRep::replicates(){
+		vesicule->replicate(this);
+	}
+
+	void Compart::ScmRep::degradets(){
 		if(!empty) die(); // make it an empty replicator
-		vesicule->M(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
+		updateM(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
 		updateDeg(); // let brokenStick know about the loss
 		assignCompart(nullptr);
 	}
@@ -146,12 +149,12 @@ namespace cmdv {
 	}
 
 	// M() is suposed to be called every time when changed
-	double Compart::M(){
+	void Compart::refresh_M(){
 		// calculate M
-		_M = 1;
+		M = 1;
 
 		if(reps.empty()){
-			_M = 0;
+			M = 0;
 		} else {
 			for(int a = 0; a < par_noEA; a++){
 				double akt = 0;
@@ -159,15 +162,15 @@ namespace cmdv {
 					// M(x) = prod(sum (a_i))
 					akt += rep->geta(a) ;
 				}
-				_M *= akt;
+				M *= akt;
 			}
 
-			_M = std::pow(_M, reciproc_noEA);
+			M = std::pow(M, reciproc_noEA);
 		}
 		
 		//update alive and no_alive
-		if(_alive != (bool) _M){ //it has changed and...
-			if((bool) _M){ // ...new state is alive
+		if(_alive != (bool) M){ //it has changed and...
+			if((bool) M){ // ...new state is alive
 				no_alive++;
 				_alive=true;
 			} else { // ...new state is dead
@@ -176,32 +179,28 @@ namespace cmdv {
 			}
 		}
 
-
-		return _M;
+		for(auto &rep : reps) rep->updateRep(M);
 	}
 
-	std::list<Compart::ScmRep*>::iterator Compart::replication(){
-		auto oldfirst= reps.begin();
-		
-		if (const double met = M(); met != 0.0 ) { // is alive
-			(parent->no_reps_last_in_alive) += reps.size();
-			const double CperM = par_claimNorep / met;
-			for(auto &rep : reps){
-				const double replicability = rep->getR();
-				if(gsl_rng_uniform(r) < (replicability / (replicability + CperM)) ){
-					//replicate it!
-					++(parent->no_last_replicates);
-					auto newrep = add(); //now reps.begin() = newrep
-					newrep->replicate( *static_cast<rnarep::CellContent*>(rep) );
-				}
+	inline double Compart::get_M() const {return M;} 
+
+
+	void Compart::replicate(Compart::ScmRep* const templ){
+			//replicate it!
+			++(parent->no_last_replicates);
+			auto newrep = add(); //now reps.begin() = newrep
+			newrep->replicate( *static_cast<rnarep::CellContent*>(templ) );
+
+			newrep->updateDeg(); // refresh degr broken stick of child - repl brokenstick will be updated anyway
+
+			//splitting
+			if(!split()){
+				refresh_M(); // in case of splitting split takes care of refreshing
 			}
-		}
-
-		return(oldfirst);
 	}
 
-	void Compart::update(){
-		//replication, degradation and splitting only if cell is not empty
+	/*void Compart::update(){
+		//eplication, degradation and splitting only if cell is not empty
 		if(reps.size()){
 			//replication
 			auto degr_from = replication();
@@ -216,9 +215,9 @@ namespace cmdv {
 			}
 
 			//splitting
-			if( !split() ) M(); // in case of splitting no_alive is refreshed, if it did not happen, we should refresh it, as DEG may have changed it
+			if( !split() ) get_M(); // in case of splitting no_alive is refreshed, if it did not happen, we should refresh it, as DEG may have changed it
 		}
-	}
+	}*/
 
 	unsigned int CompartPool::discoverComparts(const char * sourcedir){
 		std::string command;
@@ -324,7 +323,6 @@ namespace cmdv {
 		no_last_splits(0),
 		no_last_replicates(0),
 		no_last_deaths(0),
-		no_reps_last_in_alive(0),
 		no_reps_last(0),
 		time(0)
 	{
@@ -336,14 +334,14 @@ namespace cmdv {
 
 		replicators = new class Compart::ScmRep[size*(par_splitfrom-1)+1];
 
-		degpool.push_back(0,nullptr);
-		reppool.push_back(0,nullptr);
+		degpool.push_back(1,nullptr); // first element is no_replicators-sum(Pdeg)
+		reppool.push_back(1, nullptr); // first element is no_replicators * Cnorep
 
 		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) {
 			rep_stack.push_back(ptr);
 			degpool.push_back(0,ptr);
 			reppool.push_back(0,ptr);
-			ptr->setBindings(reppol);
+			ptr->setBindings(&reppool.back(), &degpool.back());
 		}
 
 //		std::cout << "Basic Constructor Called" << std::endl;
@@ -401,7 +399,7 @@ namespace cmdv {
 	}
 
 	///Random update
-	int CompartPool::rUpdate(int gens){
+	/*int CompartPool::rUpdate(int gens){
 		//check if output is open
 		if(par_output_interval && !output) {
 			std::cerr << "ERROR: output not open" << std::endl;
@@ -417,9 +415,55 @@ namespace cmdv {
 			if (par_save_interval && !(time % par_save_interval)) save();
 
 			//UPDATING
-			no_reps_last_in_alive = no_last_splits = no_last_replicates = no_last_deaths = 0;
+			no_last_splits = no_last_replicates = no_last_deaths = 0;
 			no_reps_last = Compart::ScmRep::no_replicators;
 			for(unsigned int iter = size+1; --iter; ) comparts[ gsl_rng_uniform_int(r, size) ]->update();
+
+			// quit conditions
+			if(testQuit()) break;
+
+		}
+		
+		//saving/outputting
+		if(par_output_interval) do_output();
+		if(par_save_interval) if(save()) return -2;
+
+
+		if(time < mtime) return(2); // quit condition triggered
+		if(Compart::ScmRep::no_replicators) return(1); // it has died out
+		else return(0);
+	}*/
+
+	/// Custom update for this simulation
+	int CompartPool::cUpdate(int gens){
+		//check if output is open
+		if(par_output_interval && !output) {
+			std::cerr << "ERROR: output not open" << std::endl;
+			return(-1);
+		}
+
+		int mtime = 0;
+		for(mtime = time + gens; time < mtime; time++){ //updating generations
+			autoCompartInput();
+
+			//outputs
+			if (par_output_interval && !(time % par_output_interval)) do_output();
+			if (par_save_interval && !(time % par_save_interval)) save();
+			no_last_splits = no_last_replicates = no_last_deaths = 0; // has to be after writing output
+			no_reps_last = Compart::ScmRep::no_replicators;
+
+			//UPDATING
+			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
+				// replicate
+				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
+				auto target = reppool.draw(gsl_rng_uniform(r));
+				if(target != nullptr) target->replicates();
+
+				// degrade
+				degpool[0].update(rnarep::CellContent::no_replicators -  degpool.cumsum() + degpool[0].get_p() ); // the claim of not happening degradation is no_replicators - sum(Pdeg[1-N])
+				target = degpool.draw(gsl_rng_uniform(r));
+				if(target != nullptr) target->degradets();
+			}
 
 			// quit conditions
 			if(testQuit()) break;
@@ -437,7 +481,7 @@ namespace cmdv {
 	}
 
 	//Update according to a random order (in every generation all cells will be updated)
-	int CompartPool::Update(int gens){
+	/*int CompartPool::Update(int gens){
 		//check if output is open
 		if(par_output_interval && !output) {
 			std::cerr << "ERROR: output not open" << std::endl;
@@ -467,10 +511,10 @@ namespace cmdv {
 		if(time < mtime) return(2); // quit condition triggered
 		if(Compart::ScmRep::no_replicators) return(1); // it has died out
 		else return(0);
-	}
+	}*/
 
 	//Update according to a random order (in every generation all cells will be updated)
-	int CompartPool::oUpdate(int gens){
+	/*int CompartPool::oUpdate(int gens){
 		int *order;
 		unsigned int iter=0, temp = 0, target = 0;
 
@@ -527,7 +571,7 @@ namespace cmdv {
 		if(time < mtime) return(2); // quit condition triggered
 		if(Compart::ScmRep::no_replicators) return(1); // it has died out
 		else return(0);
-	}
+	}*/
 	
 	bool CompartPool::testQuit() const {
 			if(!par_quit) return false;
@@ -697,7 +741,7 @@ namespace cmdv {
 			
 			//compart level calculations
 			if(cell->alive()){
-				double metab = cell->M();
+				double metab = cell->get_M();
 				sum_M += metab;
 				sum_M2 += metab*metab;
 			}
@@ -770,7 +814,7 @@ namespace cmdv {
 			output << ';' << out_noA[ea] ;
 		}
 
-		output << ';' << static_cast<double>(no_last_replicates)/no_reps_last_in_alive << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
+		output << ';' << static_cast<double>(no_last_replicates) << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
 
 		output.flush();
 

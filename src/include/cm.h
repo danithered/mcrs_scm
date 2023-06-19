@@ -43,7 +43,8 @@ namespace cmdv {
 					void updateDeg() const;
 					void updateM() const;
 					void updateRep(const double met) ;
-					void degrade();
+					void degradets();
+					void replicates();
 					
 					ScmRep(): rnarep::CellContent(), vesicule(nullptr), deathcount(nullptr), repcount(nullptr){}
 
@@ -74,12 +75,12 @@ namespace cmdv {
 			void die(ScmRep* rep);
 
 			//calculate metabolism around replicator
-			double M();
+			void refresh_M();
+			inline double get_M() const;
 			inline bool alive();
 
 			//an update step on this cell
-			void update();
-			std::list<ScmRep*>::iterator replication();
+			void replicate(Compart::ScmRep* const templ);
 
 			//split to two compartments
 			bool split();
@@ -89,7 +90,7 @@ namespace cmdv {
 
 			double reciproc_noEA;
 		private:
-			double _M;
+			double M;
 			bool _alive;
 	
 	};
@@ -109,7 +110,7 @@ namespace cmdv {
 			unsigned int no_last_splits; //< number of splits in last update step
 			unsigned int no_last_replicates;
 			unsigned int no_last_deaths;
-			unsigned int no_reps_last_in_alive; // to store the number of replicators in alive vesicules in previous generation
+			//unsigned int no_reps_last_in_alive; // to store the number of replicators in alive vesicules in previous generation
 			
 			std::string savedir;
 
@@ -153,6 +154,9 @@ namespace cmdv {
 
 			///Simple async update
 			int Update(int gens);
+
+			///Custom update
+			int cUpdate(int gens);
 
 			///Random update
 			int rUpdate(int gens);

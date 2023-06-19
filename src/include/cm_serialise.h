@@ -20,7 +20,7 @@ namespace boost { namespace serialization {
 	//CellContent 
 	template<class Archive>
 	void serialize(Archive & ar, cmdv::Compart & cell, unsigned int){
-		double metabolism = cell.M();
+		double metabolism = cell.get_M();
 		bool is_alive = cell.alive();
 
 		ar	& BOOST_SERIALIZATION_NVP(cell.reps);

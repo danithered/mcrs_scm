@@ -62,10 +62,11 @@ class reBrokenStick {
 		}
 
 
-		void push_back(double p, int val); 
+		void push_back(double p, NodeVal val); 
 
+		inline FenwickNode<NodeVal>& back();
 		// Find the largest i with prefix_sum(i) <= value.
-		int draw(double rn);
+		NodeVal draw(double rn);
 
 		double cumsum() const;
 
@@ -109,7 +110,7 @@ void reBrokenStick<NodeVal>::init(unsigned int newsize){
 }
 
 template <typename NodeVal>
-void reBrokenStick<NodeVal>::push_back(double p, int val){ 
+void reBrokenStick<NodeVal>::push_back(double p, NodeVal val){ 
 	//print();
 	init(used);
 	// now node exists for sure, lets assign value to it!
@@ -117,9 +118,14 @@ void reBrokenStick<NodeVal>::push_back(double p, int val){
 	tree[used++].content = val;
 }
 
+template <typename NodeVal>
+inline FenwickNode<NodeVal>& reBrokenStick<NodeVal>::back(){
+	return tree[used-1];
+}
+
 // Find the largest i with prefix_sum(i) <= value.
 template <typename NodeVal>
-int reBrokenStick<NodeVal>::draw(double rn){
+NodeVal reBrokenStick<NodeVal>::draw(double rn){
 	// init correct random value
 	if(rn<0.0 || rn >1.0) throw std::invalid_argument("Invalid random number provided to reBrokenStick. It should be between 0 and 1!\n");
 	rn *= cumsum();
