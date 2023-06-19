@@ -104,6 +104,7 @@ namespace cmdv {
 			Compart::ScmRep *replicators;
 			std::vector<Compart::ScmRep *> rep_stack;
 			broken::reBrokenStick<Compart::ScmRep*> degpool;
+			broken::reBrokenStick<Compart::ScmRep*> reppool;
 
 			unsigned int no_last_splits; //< number of splits in last update step
 			unsigned int no_last_replicates;
@@ -121,7 +122,7 @@ namespace cmdv {
 			CompartPool(int _size=300);
 			
 			//Constructor 2 - for deserialisation
-			CompartPool():degpool(1) {}
+			CompartPool():degpool(1), reppool(1) {}
 			
 			//Destructor
 			~CompartPool();

@@ -317,10 +317,17 @@ namespace cmdv {
 	}
 
 	// Constructor
-	CompartPool::CompartPool(int _size): degpool(1), size(_size), no_last_splits(0), no_last_replicates(0), no_last_deaths(0), no_reps_last_in_alive(0), no_reps_last(0){
-		time=0;
-		//saving_freq = 0;
-
+	CompartPool::CompartPool(int _size):
+		degpool(size*(par_splitfrom-1)+2),
+		reppool(size*(par_splitfrom-1)+2),
+		size(_size),
+		no_last_splits(0),
+		no_last_replicates(0),
+		no_last_deaths(0),
+		no_reps_last_in_alive(0),
+		no_reps_last(0),
+		time(0)
+	{
 		comparts = new class Compart* [size];
 		for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
 			*comp = new class Compart;
@@ -328,9 +335,18 @@ namespace cmdv {
 		}
 
 		replicators = new class Compart::ScmRep[size*(par_splitfrom-1)+1];
-		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) rep_stack.push_back(ptr);
 
-//				std::cout << "Basic Constructor Called" << std::endl;
+		degpool.push_back(0,nullptr);
+		reppool.push_back(0,nullptr);
+
+		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) {
+			rep_stack.push_back(ptr);
+			degpool.push_back(0,ptr);
+			reppool.push_back(0,ptr);
+			ptr->setBindings(reppol);
+		}
+
+//		std::cout << "Basic Constructor Called" << std::endl;
 	}
 
 	void CompartPool::init_fromfile(char *infile) {
