@@ -9,7 +9,7 @@ namespace cmdv {
 	
 	inline void Compart::ScmRep::setBindings(broken::FenwickNode<ScmRep*> *repBS, broken::FenwickNode<ScmRep*> *deathBS){
 		deathcount = deathBS;
-		repcount = deathBS;
+		repcount = repBS;
 	}
 
 	// from: removes itself if it does not comes from stack
@@ -33,7 +33,7 @@ namespace cmdv {
 	}
 
 	void Compart::ScmRep::updateDeg() const{
-//		deathcount->update(Pdeg);
+		deathcount->update(Pdeg);
 	}
 
 	void Compart::ScmRep::updateM() const{
@@ -41,7 +41,7 @@ namespace cmdv {
 	}
 
 	void Compart::ScmRep::updateRep(const double met) {
-//		repcount->update(met*getR());
+		repcount->update(met*getR());
 	}
 
 	Compart::Compart(): parent(NULL), reciproc_noEA(1 / (double) par_noEA), M(0.0), _alive(false){}
@@ -136,6 +136,7 @@ namespace cmdv {
 		//*dynamic_cast<rnarep::CellContent*>(&*newrep) = newseq;
 		*static_cast<rnarep::CellContent*>(newrep) = newseq;
 		
+
 		if ( newrep->seq.length() == 0) {
 			std::cerr << "Warning: Compart::add(string): invalid sequence " << newseq << " !" << std::endl;
 			die( newrep );
@@ -308,9 +309,10 @@ namespace cmdv {
 		while(std::getline(file, line)){
 			std::istringstream linestream(line);
 			linestream >> word;
-			target->add(word);
+			(target->add(word))->updateDeg();
 		}
 
+		target->refresh_M();
 
 		return true;
 	}
