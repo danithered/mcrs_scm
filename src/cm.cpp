@@ -14,8 +14,8 @@ namespace cmdv {
 
 	// from: removes itself if it does not comes from stack
 	// to: assotiates with it both ways
-	inline void Compart::ScmRep::assignCompart(Compart * comp){
-		if(vesicule == comp) return;
+	inline Compart* Compart::ScmRep::assignCompart(Compart * comp){
+		if(vesicule == comp) return vesicule;
 		if(vesicule != nullptr){
 			vesicule->reps.remove(this);
 		}
@@ -26,9 +26,10 @@ namespace cmdv {
 			comp->reps.push_back(this);
 		}
 
+		auto old_vesicule = vesicule;
 		vesicule = comp;
 
-
+		return(old_vesicule);
 
 	}
 
@@ -55,12 +56,15 @@ namespace cmdv {
 	}*/
 
 	void Compart::clear(){
-		for(auto rep = reps.begin(); rep != reps.end(); ++rep) die(*rep);
+		for(auto rep = reps.begin(), temp = rep; rep != reps.end(); temp=rep) {
+			++rep;
+			die(*temp);
+		}
 		refresh_M(); //to refresh alive no_alive 
 	}
 
 	bool Compart::split(){
-		if(reps.size() > (unsigned int) par_splitfrom) {
+		if(reps.size() >= (unsigned int) par_splitfrom) {
 			Compart *target = parent->get(); //choose a random cell
 
 			if(target == this){ // in case it should replicate to its own position it only looses half of its content
@@ -97,9 +101,10 @@ namespace cmdv {
 
 	void Compart::ScmRep::degradets(){
 		if(!empty) die(); // make it an empty replicator
-		updateM(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
+		auto oldves = assignCompart(nullptr);
+		//updateM(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
+		oldves->refresh_M(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
 		updateDeg(); // let brokenStick know about the loss
-		assignCompart(nullptr);
 	}
 
 	void Compart::die(Compart::ScmRep *rep){
@@ -120,12 +125,13 @@ namespace cmdv {
 	}
 
 	Compart::ScmRep* Compart::add(){
-		reps.push_front(parent->rep_stack.back()); // get empty replicator
+		//reps.push_front(parent->rep_stack.back()); // get empty replicator
+		Compart::ScmRep* newrep = parent->rep_stack.back(); // get empty replicator
 		parent->rep_stack.pop_back(); // delete from stack
 					      
-		reps.front()->assignCompart(this); // let it know where it has gotten to		
+		newrep->assignCompart(this); // let it know where it has gotten to		
 
-		return( reps.front() );
+		return( newrep );
 	}
 	
 	Compart::ScmRep* Compart::add(std::string newseq){
@@ -284,9 +290,10 @@ namespace cmdv {
 		while(std::getline(file, line)){
 			std::istringstream linestream(line);
 			linestream >> word;
-			target->add(word);
+			(target->add(word))->updateDeg();
 		}
 
+		target->refresh_M();
 
 		return true;
 	}
@@ -458,7 +465,8 @@ namespace cmdv {
 			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
 				// replicate
 				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
-				auto target = reppool.draw(gsl_rng_uniform(r));
+				double rn = gsl_rng_uniform(r);
+				auto target = reppool.draw(rn);
 				if(target != nullptr) target->replicates();
 
 				// degrade

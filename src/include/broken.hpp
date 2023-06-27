@@ -256,14 +256,17 @@ FenwickNode<NodeVal> * FenwickNode<NodeVal>::find(double rn){
 		if(firstchild != nullptr){
 			return(firstchild->find(rn));
 		} else { // it is a ME!
+			if(node==0.0) throw std::runtime_error("Shit1 in broken stick\n");
 			return this;
 		}
 	} else { // it is me or my parent or my siblings or their children
 		if(sibling != nullptr){ // it is my siblings` families (or my parent)
 			return(sibling->find(rn-branch)); // but is is definitely not me nor my branch so dont search in here!
 		} else if(parent != nullptr){ // it is my parent!
+			if(parent->node==0.0) throw std::runtime_error("Shit2 in broken stick\n");
 			return parent;
 		} else { // it is a ME!
+			if(node==0.0) throw std::runtime_error("Shit3 in broken stick\n");
 			return this;
 		}
 	}

@@ -39,7 +39,7 @@ namespace cmdv {
 					
 				public: 
 					void setBindings(broken::FenwickNode<ScmRep*> *repBS, broken::FenwickNode<ScmRep*> *deathBS);
-					void assignCompart(Compart * comp);
+					Compart* assignCompart(Compart * comp);
 					void updateDeg() const;
 					void updateM() const;
 					void updateRep(const double met) ;
