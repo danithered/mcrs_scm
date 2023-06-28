@@ -74,6 +74,17 @@ class reBrokenStick {
 
 		//FenwickNode<NodeVal> * operator[] (int i) ;
 		FenwickNode<NodeVal> & operator[] (int i) ;
+
+		void check_integrity(){
+			int level=tree.size();
+			for(auto n=tree.rbegin(); n!=tree.rend(); ++n){
+				if(n->branch < 0.0 || n->node < 0.0){
+					throw std::runtime_error("Tree integrity broken\n");
+				}
+				level--;
+			}
+			
+		}
 	private:
 		unsigned int used; // number of nodes used
 		std::vector<FenwickNode<NodeVal>> tree;
@@ -116,6 +127,7 @@ void reBrokenStick<NodeVal>::push_back(double p, NodeVal val){
 	// now node exists for sure, lets assign value to it!
 	tree[used].add(p);
 	tree[used++].content = val;
+	check_integrity();
 }
 
 template <typename NodeVal>
@@ -210,11 +222,12 @@ template <typename NodeVal>
 void FenwickNode<NodeVal>::add(const double value){
 	_add(value);
 	node += value;
-	if(node < 0.0) throw std::runtime_error("Invald modification of node in reBrokenStick: propensity cant be negative!\n"); 
+	if(node < 0.0) node = 0.0; 
 }
 
 template <typename NodeVal>
 void FenwickNode<NodeVal>::update(const double value){
+	if(value < 0.0) throw std::runtime_error("ERROR: new value can not be negative!\n");
 	add(value - node);
 }
 
@@ -245,6 +258,7 @@ void FenwickNode<NodeVal>::_add(const double value){
 	if(value == 0.0) return;
 
 	branch += value;
+	if(branch < 0) branch = 0.0;
 
 	if(parent != nullptr) parent->_add(value);
 }
@@ -252,6 +266,7 @@ void FenwickNode<NodeVal>::_add(const double value){
 // to find largest node with with prefix_sum(i) <= value.
 template <typename NodeVal>
 FenwickNode<NodeVal> * FenwickNode<NodeVal>::find(double rn){
+	if(branch<0.0) throw std::runtime_error("Shit0 in broken stick\n");
 	if(branch > rn){ // it should not be me, someone lower  
 		if(firstchild != nullptr){
 			return(firstchild->find(rn));
