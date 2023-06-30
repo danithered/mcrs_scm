@@ -19,9 +19,9 @@ class FenwickNode {
 		FenwickNode() : branch(0.0), node(0.0), parent(nullptr), firstchild(nullptr), sibling(nullptr) {}
 
 		// Functions
-		void add(const double value);
+		void add(const float value);
 
-		void update(const double value);
+		void update(const float value);
 
 		void zero();
 
@@ -30,9 +30,9 @@ class FenwickNode {
 		// getters
 		NodeVal & operator * ();
 
-		double get_branch() const;
+		float get_branch() const;
 
-		double get_p() const;
+		float get_p() const;
 
 		template <typename X>
 		friend class reBrokenStick;
@@ -44,7 +44,7 @@ class FenwickNode {
 		FenwickNode<NodeVal> * firstchild;
 		FenwickNode<NodeVal> * sibling;
 
-		void _add(const double value);
+		void _add(const float value);
 
 		// to find largest node with with prefix_sum(i) <= value.
 		FenwickNode<NodeVal> * find(double rn);
@@ -62,13 +62,13 @@ class reBrokenStick {
 		}
 
 
-		void push_back(double p, NodeVal val); 
+		void push_back(float p, NodeVal val); 
 
 		inline FenwickNode<NodeVal>& back();
 		// Find the largest i with prefix_sum(i) <= value.
 		NodeVal draw(double rn);
 
-		double cumsum() const;
+		float cumsum() const;
 
 		void print();
 
@@ -121,7 +121,7 @@ void reBrokenStick<NodeVal>::init(unsigned int newsize){
 }
 
 template <typename NodeVal>
-void reBrokenStick<NodeVal>::push_back(double p, NodeVal val){ 
+void reBrokenStick<NodeVal>::push_back(float p, NodeVal val){ 
 	//print();
 	init(used);
 	// now node exists for sure, lets assign value to it!
@@ -138,6 +138,7 @@ inline FenwickNode<NodeVal>& reBrokenStick<NodeVal>::back(){
 // Find the largest i with prefix_sum(i) <= value.
 template <typename NodeVal>
 NodeVal reBrokenStick<NodeVal>::draw(double rn){
+	if(cumsum() == 0.0) return tree[0].content;
 	// init correct random value
 	if(rn<0.0 || rn >1.0) throw std::invalid_argument("Invalid random number provided to reBrokenStick. It should be between 0 and 1!\n");
 	rn *= cumsum();
@@ -151,7 +152,7 @@ NodeVal reBrokenStick<NodeVal>::draw(double rn){
 }
 
 template <typename NodeVal>
-double reBrokenStick<NodeVal>::cumsum() const {return tree.back().branch;}
+float reBrokenStick<NodeVal>::cumsum() const {return tree.back().branch;}
 
 template <typename NodeVal>
 void reBrokenStick<NodeVal>::print(){
@@ -208,10 +209,10 @@ void reBrokenStick<NodeVal>::updateRelation(unsigned int index){
 }
 
 template <typename NodeVal>
-double FenwickNode<NodeVal>::get_branch() const {return branch;}
+float FenwickNode<NodeVal>::get_branch() const {return static_cast<float>(branch);}
 
 template <typename NodeVal>
-double FenwickNode<NodeVal>::get_p() const {return node;}
+float FenwickNode<NodeVal>::get_p() const {return static_cast<float>(node);}
 
 template <typename NodeVal>
 void reBrokenStick<NodeVal>::updateRelations() {
@@ -219,14 +220,14 @@ void reBrokenStick<NodeVal>::updateRelations() {
 }
 
 template <typename NodeVal>
-void FenwickNode<NodeVal>::add(const double value){
+void FenwickNode<NodeVal>::add(const float value){
 	_add(value);
 	node += value;
 	if(node < 0.0) node = 0.0; 
 }
 
 template <typename NodeVal>
-void FenwickNode<NodeVal>::update(const double value){
+void FenwickNode<NodeVal>::update(const float value){
 	if(value < 0.0) throw std::runtime_error("ERROR: new value can not be negative!\n");
 	add(value - node);
 }
@@ -254,10 +255,10 @@ NodeVal & FenwickNode<NodeVal>::operator * (){
 }
 
 template <typename NodeVal>
-void FenwickNode<NodeVal>::_add(const double value){
+void FenwickNode<NodeVal>::_add(const float value){
 	if(value == 0.0) return;
 
-	branch += value;
+	branch += static_cast<double>(value);
 	if(branch < 0) branch = 0.0;
 
 	if(parent != nullptr) parent->_add(value);

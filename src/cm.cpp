@@ -63,6 +63,12 @@ namespace cmdv {
 		refresh_M(); //to refresh alive no_alive 
 	}
 
+		void Compart::printReps(){
+		for(Compart::ScmRep* rep : reps){
+			std::cout << "empty(" << rep->empty << ")\t" << rep->get_type() << '\t'<< *rep->get_seq() << '\t' << rep->get_str() << std::endl; 
+		}
+	}
+
 	bool Compart::split(){
 		if(reps.size() >= (unsigned int) par_splitfrom) {
 			Compart *target = parent->get(); //choose a random cell
@@ -103,8 +109,10 @@ namespace cmdv {
 		if(!empty) die(); // make it an empty replicator
 		auto oldves = assignCompart(nullptr);
 		//updateM(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
-		oldves->refresh_M(); // refresh M() and refresh everyones Rep (no need to refresh brokenStick here)
+		oldves->refresh_M(); // refresh M() and refresh everyones Rep in old vesicule
+		updateRep(0.0); //updates selfs rep broken stick 
 		updateDeg(); // let brokenStick know about the loss
+		if(deathcount->get_p() > 0) throw std::runtime_error("Shit in degr.\n");
 	}
 
 	void Compart::die(Compart::ScmRep *rep){
@@ -462,17 +470,22 @@ namespace cmdv {
 			no_reps_last = Compart::ScmRep::no_replicators;
 
 			//UPDATING
+			Compart::ScmRep *target=nullptr, *deg_target=nullptr;
 			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
 				// replicate
 				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
 				double rn = gsl_rng_uniform(r);
-				auto target = reppool.draw(rn);
+				target = reppool.draw(rn);
 				if(target != nullptr) target->replicates();
 
 				// degrade
 				degpool[0].update(rnarep::CellContent::no_replicators -  degpool.cumsum() + degpool[0].get_p() ); // the claim of not happening degradation is no_replicators - sum(Pdeg[1-N])
-				target = degpool.draw(gsl_rng_uniform(r));
-				if(target != nullptr) target->degradets();
+				rn = gsl_rng_uniform(r);
+				deg_target = degpool.draw(rn);
+				if(deg_target != nullptr) {
+					deg_target->degradets();
+					if(deg_target == degpool.draw(rn)) throw std::runtime_error("Shit, deg was not nulled!\n");
+				}
 			}
 
 			// quit conditions

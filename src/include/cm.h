@@ -53,6 +53,8 @@ namespace cmdv {
 			//Compart content
 			std::list<class ScmRep*> reps;
 
+
+
 			class CompartPool *parent;
 			static unsigned int no_alive;
 
@@ -76,6 +78,7 @@ namespace cmdv {
 
 			//calculate metabolism around replicator
 			void refresh_M();
+			void printReps();
 			inline double get_M() const;
 			inline bool alive();
 

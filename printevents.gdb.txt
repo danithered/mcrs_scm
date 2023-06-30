@@ -1,0 +1,16 @@
+break /home/danielred/data/programs/mcrs_scm/src/cm.cpp:97
+  commands
+    p (void) printf("SPLIT of vesicule %p (size: %d, met: %g) -> %p (size: %d, met: %g)\n", this, reps.size(), get_M(), target, target->reps.size(), target->get_M())
+  end
+break /home/danielred/data/programs/mcrs_scm/src/cm.cpp:208
+  commands
+    p (void) printf("replication in vesicule %p: %p -> %p (size is %d)\n", this, templ, newrep, reps.size())
+    c
+  end
+break /home/danielred/data/programs/mcrs_scm/src/cm.cpp:114
+  commands
+    p (void) printf("degradation in vesicule %p: %p (size is %d)\n", oldves, this, oldves->reps.size())
+    c
+  end
+break broken.hpp:draw(double)
+disable $bpnum
