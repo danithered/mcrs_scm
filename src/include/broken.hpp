@@ -173,7 +173,7 @@ void reBrokenStick<NodeVal>::updateRelation(unsigned int index){
 	const unsigned int my_LSB = LSB(index);
 
 	// parent
-	int target = index + my_LSB;
+	unsigned int target = index + my_LSB;
 	tree[index].parent = (target < tree.size())?&tree[target]:nullptr;
 
 

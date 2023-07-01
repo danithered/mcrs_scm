@@ -334,14 +334,14 @@ namespace cmdv {
 
 	// Constructor
 	CompartPool::CompartPool(int _size):
+		size(_size),
+		time(0),
 		degpool(size*(par_splitfrom-1)+2),
 		reppool(size*(par_splitfrom-1)+2),
-		size(_size),
 		no_last_splits(0),
 		no_last_replicates(0),
 		no_last_deaths(0),
-		no_reps_last(0),
-		time(0)
+		no_reps_last(0)
 	{
 		comparts = new class Compart* [size];
 		for(Compart **comp = comparts, **endcomp = comparts+size; comp != endcomp; comp++){
@@ -470,7 +470,6 @@ namespace cmdv {
 			no_reps_last = Compart::ScmRep::no_replicators;
 
 			//UPDATING
-			Compart::ScmRep *target=nullptr, *deg_target=nullptr;
 			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
 				// replicate
 				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
