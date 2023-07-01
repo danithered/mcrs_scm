@@ -53,8 +53,6 @@ namespace cmdv {
 			//Compart content
 			std::list<class ScmRep*> reps;
 
-
-
 			class CompartPool *parent;
 			static unsigned int no_alive;
 

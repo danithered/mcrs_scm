@@ -474,18 +474,13 @@ namespace cmdv {
 			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
 				// replicate
 				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
-				double rn = gsl_rng_uniform(r);
-				target = reppool.draw(rn);
+				auto target = reppool.draw(gsl_rng_uniform(r));
 				if(target != nullptr) target->replicates();
 
 				// degrade
 				degpool[0].update(rnarep::CellContent::no_replicators -  degpool.cumsum() + degpool[0].get_p() ); // the claim of not happening degradation is no_replicators - sum(Pdeg[1-N])
-				rn = gsl_rng_uniform(r);
-				deg_target = degpool.draw(rn);
-				if(deg_target != nullptr) {
-					deg_target->degradets();
-					if(deg_target == degpool.draw(rn)) throw std::runtime_error("Shit, deg was not nulled!\n");
-				}
+				target = degpool.draw(gsl_rng_uniform(r));
+				if(target != nullptr) target->degradets();	
 			}
 
 			// quit conditions

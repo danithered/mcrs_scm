@@ -75,16 +75,6 @@ class reBrokenStick {
 		//FenwickNode<NodeVal> * operator[] (int i) ;
 		FenwickNode<NodeVal> & operator[] (int i) ;
 
-		void check_integrity(){
-			int level=tree.size();
-			for(auto n=tree.rbegin(); n!=tree.rend(); ++n){
-				if(n->branch < 0.0 || n->node < 0.0){
-					throw std::runtime_error("Tree integrity broken\n");
-				}
-				level--;
-			}
-			
-		}
 	private:
 		unsigned int used; // number of nodes used
 		std::vector<FenwickNode<NodeVal>> tree;
@@ -122,12 +112,10 @@ void reBrokenStick<NodeVal>::init(unsigned int newsize){
 
 template <typename NodeVal>
 void reBrokenStick<NodeVal>::push_back(float p, NodeVal val){ 
-	//print();
 	init(used);
 	// now node exists for sure, lets assign value to it!
 	tree[used].add(p);
 	tree[used++].content = val;
-	check_integrity();
 }
 
 template <typename NodeVal>
@@ -146,8 +134,8 @@ NodeVal reBrokenStick<NodeVal>::draw(double rn){
 	// check 0 position 
 	if(rn < tree[0].branch) return tree[0].content; // Sometimes this is the biggest
 	
-	auto out = tree.back().find(rn);
-	return (out)->content;
+	//auto out = tree.back().find(rn);
+	return tree.back().find(rn)->content;
     
 }
 
@@ -267,22 +255,18 @@ void FenwickNode<NodeVal>::_add(const float value){
 // to find largest node with with prefix_sum(i) <= value.
 template <typename NodeVal>
 FenwickNode<NodeVal> * FenwickNode<NodeVal>::find(double rn){
-	if(branch<0.0) throw std::runtime_error("Shit0 in broken stick\n");
 	if(branch > rn){ // it should not be me, someone lower  
 		if(firstchild != nullptr){
 			return(firstchild->find(rn));
 		} else { // it is a ME!
-			if(node==0.0) throw std::runtime_error("Shit1 in broken stick\n");
 			return this;
 		}
 	} else { // it is me or my parent or my siblings or their children
 		if(sibling != nullptr){ // it is my siblings` families (or my parent)
 			return(sibling->find(rn-branch)); // but is is definitely not me nor my branch so dont search in here!
 		} else if(parent != nullptr){ // it is my parent!
-			if(parent->node==0.0) throw std::runtime_error("Shit2 in broken stick\n");
 			return parent;
 		} else { // it is a ME!
-			if(node==0.0) throw std::runtime_error("Shit3 in broken stick\n");
 			return this;
 		}
 	}
