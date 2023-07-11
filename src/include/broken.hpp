@@ -68,7 +68,7 @@ class reBrokenStick {
 		// Find the largest i with prefix_sum(i) <= value.
 		NodeVal draw(double rn);
 
-		float cumsum() const;
+		double cumsum() const;
 
 		void print();
 
@@ -140,7 +140,7 @@ NodeVal reBrokenStick<NodeVal>::draw(double rn){
 }
 
 template <typename NodeVal>
-float reBrokenStick<NodeVal>::cumsum() const {return tree.back().branch;}
+double reBrokenStick<NodeVal>::cumsum() const {return tree.back().branch;}
 
 template <typename NodeVal>
 void reBrokenStick<NodeVal>::print(){
