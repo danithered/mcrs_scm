@@ -1,5 +1,6 @@
 #include "cm.h"
 #include "include/rnarep.h"
+#include <unordered_set>
 
 namespace cmdv {
 	//int no_births=0;
@@ -17,13 +18,13 @@ namespace cmdv {
 	inline Compart* Compart::ScmRep::assignCompart(Compart * comp){
 		if(vesicule == comp) return vesicule;
 		if(vesicule != nullptr){
-			vesicule->reps.remove(this);
+			vesicule->reps.erase(this);
 		}
 
 		if(comp == nullptr){
 			vesicule->parent->rep_stack.push_back(this);
 		} else {
-			comp->reps.push_back(this);
+			comp->reps.insert(this);
 		}
 
 		auto old_vesicule = vesicule;
@@ -75,7 +76,7 @@ namespace cmdv {
 
 			if(target == this){ // in case it should replicate to its own position it only looses half of its content
 				//for(auto &rep : reps){
-				for(std::list<Compart::ScmRep*>::iterator rep = reps.begin(); rep != reps.end(); ){
+				for(auto rep = reps.begin(); rep != reps.end(); ){
 					Compart::ScmRep *temp = *(rep++);
 					if(gsl_rng_uniform(r) < 0.5) die(temp);
 				}
@@ -83,11 +84,10 @@ namespace cmdv {
 				target->clear(); //kill cell 
 				
 				// hypergeometric
-				for(std::list<Compart::ScmRep*>::iterator emigrant = reps.begin(), temp_it; emigrant != reps.end(); ){
-					temp_it = emigrant++; //it is neccessary to keep emigant in the range of reps
+				for(auto emigrant = reps.begin(); emigrant != reps.end(); ){
 					if(gsl_rng_uniform(r) < 0.5) {
-						(**temp_it).assignCompart(target);
-					} 
+						(**(emigrant++)).assignCompart(target);
+					} else ++emigrant;
 				}
 				target->refresh_M(); // to refresh no_alive
 			}
@@ -127,9 +127,9 @@ namespace cmdv {
 //		return(reps.begin());
 //	}
 
-	std::list<Compart::ScmRep*>::iterator Compart::add(Compart::ScmRep *rep){
-		reps.push_front(rep);
-		return(reps.begin());
+	auto Compart::add(Compart::ScmRep *rep){
+		auto [iterator,inserted] = reps.insert(rep);
+		return(iterator);
 	}
 
 	Compart::ScmRep* Compart::add(){

@@ -3,10 +3,13 @@
 
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp> 
+#include <boost/core/nvp.hpp>
+#include <boost/serialization/array_wrapper.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/list.hpp>
+#include <boost/serialization/unordered_set.hpp>
 #include "cm.h"
 #include "rnarep.h"
 #include "rnarep_serialise.h"
@@ -23,11 +26,11 @@ namespace boost { namespace serialization {
 		double metabolism = cell.get_M();
 		bool is_alive = cell.alive();
 
-		ar	& BOOST_SERIALIZATION_NVP(cell.reps);
+		ar	& boost::serialization::make_nvp("reps", cell.reps);
 		ar	//& BOOST_SERIALIZATION_NVP(cell.updateable)
-			& BOOST_SERIALIZATION_NVP( is_alive )
-			& BOOST_SERIALIZATION_NVP(cell.reciproc_noEA)
-			& BOOST_SERIALIZATION_NVP(metabolism);
+			& boost::serialization::make_nvp("alive", is_alive )
+			& boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA)
+			& boost::serialization::make_nvp("M", metabolism);
 
 	}
 
@@ -48,7 +51,12 @@ namespace boost { namespace serialization {
 		//add comparts
 		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
 
+	//	ar	<< boost::serialization::make_nvp("reps", boost::serialization::make_array(sim.reps, sim.size*(par_splitfrom-1)+1));
+
 		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_splits);
+		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_replicates);
+		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_deaths);
+		ar	<< BOOST_SERIALIZATION_NVP(sim.savedir);
 
 	}
 
@@ -75,8 +83,8 @@ namespace boost { namespace serialization {
 
 //declare version
 BOOST_SERIALIZATION_SPLIT_FREE(cmdv::Compart::ScmRep)
-BOOST_CLASS_VERSION(cmdv::Compart, 3)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 4)
+BOOST_CLASS_VERSION(cmdv::Compart, 4)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 5)
 BOOST_CLASS_VERSION(cmdv::Compart::ScmRep, 3)
 
 #endif

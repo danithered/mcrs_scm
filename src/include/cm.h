@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <list>
 #include <map>
+#include <unordered_set>
 
 #define SINGLESQ 2.0
 #define SINGLEHEX 3.0
@@ -51,7 +52,7 @@ namespace cmdv {
 			};
 
 			//Compart content
-			std::list<class ScmRep*> reps;
+			std::unordered_set<class ScmRep*> reps;
 
 			class CompartPool *parent;
 			static unsigned int no_alive;
@@ -66,7 +67,7 @@ namespace cmdv {
 			//void operator =(Compart& origin);
 
 			//add replicator
-			std::list<ScmRep*>::iterator add(ScmRep* rep);
+			auto add(ScmRep* rep);
 			ScmRep* add();
 			ScmRep* add(std::string newseq);
 			//std::list<ScmRep>::iterator add(std::list<ScmRep>::iterator it, std::list<ScmRep> &from);
