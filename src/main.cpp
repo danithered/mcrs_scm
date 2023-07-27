@@ -1,7 +1,5 @@
 #include <iostream>
-//#include <ctime>
 #include "broken.hpp"
-#include "include/cm.h"
 #include "randomgen.h"
 #include "cm.h"
 #include "parameters.h"

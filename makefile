@@ -36,7 +36,7 @@ OBJ_strdist = $(patsubst %,$(ODIR)/%,$(_OBJ_strdist))
 _OBJ_randseq = randseq.o randomgen.o rnarep.o annot.o parameters.o dv_tools.o
 OBJ_randseq = $(patsubst %,$(ODIR)/%,$(_OBJ_randseq))
 
-_OBJ_alive = alive.o randomgen.o rnarep.o annot.o parameters.o dv_tools.o cm.o
+_OBJ_alive = alive.o rnarep.o randomgen.o annot.o parameters.o dv_tools.o cm.o
 OBJ_alive = $(patsubst %,$(ODIR)/%,$(_OBJ_alive))
 
 

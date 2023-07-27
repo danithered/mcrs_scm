@@ -79,8 +79,7 @@ namespace cmdv {
 			void refresh_M();
 			void printReps();
 			inline double get_M() const;
-//			inline bool alive();
-			inline bool alive() {return _alive;}
+			inline bool alive();
 
 			//an update step on this cell
 			void replicate(Compart::ScmRep* const templ);
