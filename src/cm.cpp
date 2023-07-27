@@ -159,10 +159,6 @@ namespace cmdv {
 		return( newrep );
 	}
 
-	inline bool Compart::alive() {
-		return _alive;
-	}
-
 	// M() is suposed to be called every time when changed
 	void Compart::refresh_M(){
 		// calculate M
@@ -196,8 +192,6 @@ namespace cmdv {
 
 		for(auto &rep : reps) rep->updateRep(M);
 	}
-
-	inline double Compart::get_M() const {return M;} 
 
 
 	void Compart::replicate(Compart::ScmRep* const templ){

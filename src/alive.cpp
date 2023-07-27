@@ -16,13 +16,12 @@ int main(int argc, char *argv[]) {
 				      
 	rnarep::CellContent::patterns.readFile(argv[1]); //read in pattern file
 	cmdv::CompartPool automata(1); //initialise automata
+	cmdv::Compart  *comp = *(automata.comparts);
 
 	// LOOK TRU FILES
 	for(unsigned int file = 2; file < argc; ++file){
 		if(!automata.compartFromFile(argv[file])) continue; // import compart
 		
-		cmdv::Compart  *comp = *(automata.comparts);
-
 		if( comp->alive() ){
 			double sum = 0.0, sumsquared = 0.0;
 

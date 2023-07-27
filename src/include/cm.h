@@ -78,8 +78,9 @@ namespace cmdv {
 			//calculate metabolism around replicator
 			void refresh_M();
 			void printReps();
-			inline double get_M() const;
-			inline bool alive();
+			inline double get_M() const {return M;} 
+
+			inline bool alive() {return _alive;}
 
 			//an update step on this cell
 			void replicate(Compart::ScmRep* const templ);
