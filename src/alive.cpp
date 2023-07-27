@@ -12,12 +12,14 @@ int main(int argc, char *argv[]) {
 	//	return(-1);
 	//}
 
+	par_substitution = par_insertion = par_deletion = 0;
+	strcpy(par_str_pool, argv[1]);
+
 	randomszam_inic(1, r); // init with exact seed
 				      
 	rnarep::CellContent::patterns.readFile(argv[1]); //read in pattern file
-	cmdv::CompartPool automata(100); //initialise automata
+	cmdv::CompartPool automata(1); //initialise automata
 
-	par_substitution = par_insertion = par_deletion = 0;
 
 
 	for(unsigned int file = 2; file < argc; ++file){
