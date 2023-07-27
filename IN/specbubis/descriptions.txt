@@ -1,0 +1,7 @@
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_2000/SAVE/bubble_t0_24.tsv  M=1.56891       SD(R)=0.244347
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_2000/SAVE/bubble_t0_58.tsv  M=2.28718       SD(R)=0.294883
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_2000/SAVE/bubble_t0_72.tsv  M=1.75294       SD(R)=0.348852
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_0/SAVE/bubble_t0_14.tsv     M=2.05813       SD(R)=0.836452
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_0/SAVE/bubble_t0_18.tsv     M=3.16221       SD(R)=1.58218
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_0/SAVE/bubble_t0_19.tsv     M=2.83978       SD(R)=1.4266
+/home/danielred/data/programs/mcrs_chromosome/OUT/A7.sample_1000/SAVE/bubble_t0_72.tsv  M=1.85042       SD(R)=0.431256 
