@@ -36,6 +36,8 @@ OBJ_strdist = $(patsubst %,$(ODIR)/%,$(_OBJ_strdist))
 _OBJ_randseq = randseq.o randomgen.o rnarep.o annot.o parameters.o dv_tools.o
 OBJ_randseq = $(patsubst %,$(ODIR)/%,$(_OBJ_randseq))
 
+_OBJ_alive = alive.o randomgen.o rnarep.o annot.o parameters.o dv_tools.o cm.o
+OBJ_alive = $(patsubst %,$(ODIR)/%,$(_OBJ_alive))
 
 
 $(ODIR)/%.o: $(SRCDIR)/%.cpp $(DEPS)
@@ -79,5 +81,8 @@ dist: $(OBJ_strdist)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 randseq: $(OBJ_randseq)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+
+alive: $(OBJ_alive)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
