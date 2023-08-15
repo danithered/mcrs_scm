@@ -11,7 +11,7 @@ using namespace std;
 				int par_quit = cmdv::QuitCond::qnone; // quitting condition. See: cdv::QuitCond
 				int par_maxtime = 2000000; //length of simulation
 
-				double par_claimNorep = 1.5; //claim of no replication - compared with M*R: it scales the possibility of a replicator daemon just hangin around not doing anyting
+				double par_claimNorep = 0.0; //claim of no replication - compared with M*R: it scales the possibility of a replicator daemon just hangin around not doing anyting
 				double par_init_grid = 0.0; //
 				int par_splitfrom = 50; //size when cells split
 				int par_num_input_content = 25; //number of replicators read from file to cells
