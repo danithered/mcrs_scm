@@ -454,6 +454,7 @@ namespace cmdv {
 		}
 
 		int mtime = 0;
+		unsigned int periodlength = par_poolsize * (par_splitfrom - 1) / 2;
 		for(mtime = time + gens; time < mtime; time++){ //updating generations
 			autoCompartInput();
 
@@ -464,7 +465,7 @@ namespace cmdv {
 			no_reps_last = Compart::ScmRep::no_replicators;
 
 			//UPDATING
-			for(unsigned int iter = Compart::ScmRep::no_replicators; --iter; ) {
+			for(unsigned int iter = periodlength ; --iter; ) {
 				// replicate
 				reppool[0].update(rnarep::CellContent::no_replicators * par_claimNorep); // the claim of not happening replication is no_replicators * Claim_norep
 				auto target = reppool.draw(gsl_rng_uniform(r));
