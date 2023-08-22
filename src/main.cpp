@@ -20,6 +20,14 @@ int main(int argc, char *argv[]) {
 		return(-1);
 	}
 
+	//load if needed
+	if(std::strlen(par_load) > 0) {
+		automata.init_fromfile(par_load);
+
+		//Argoments - second read tru in case something addition specified besides load
+		Args(argc, argv)
+	}
+
 	//initialise rng
 	time_t timer;
 	if(std::strlen(par_seed_file)){
@@ -44,8 +52,6 @@ int main(int argc, char *argv[]) {
 	//automata.neighInic(par_Nmet, cadv::torus, 1); //init metabolic neighbourhood 
 	//automata.neighInic(par_Nrep, cadv::torus, 2); //init replication neighbourhood
 
-	//load if needed
-	if(std::strlen(par_load) > 0) automata.init_fromfile(par_load);
 	if(std::strlen(par_bubbles) > 0) automata.discoverComparts(par_bubbles);
 
 	//open output

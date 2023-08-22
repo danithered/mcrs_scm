@@ -37,7 +37,6 @@ extern char par_seed_file[255];
 extern char par_bubbles[255];
 
 extern double par_init_grid;
-//extern double par_death;
 extern double par_ll;
 extern double par_sigma;
 extern double par_substitution;

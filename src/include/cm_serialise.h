@@ -10,28 +10,35 @@
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/unordered_set.hpp>
+#include <stdexcept>
 #include "cm.h"
 #include "rnarep.h"
 #include "rnarep_serialise.h"
 
 //declare to split serilize to save/load
 BOOST_SERIALIZATION_SPLIT_FREE(cmdv::CompartPool)
+BOOST_SERIALIZATION_SPLIT_FREE(cmdv::Compart)
 
 //serialisers
 namespace boost { namespace serialization {
 
-	//CellContent 
+	//Compart 
 	template<class Archive>
-	void serialize(Archive & ar, cmdv::Compart & cell, unsigned int){
+	void save(Archive & ar, const cmdv::Compart & cell, unsigned int){
 		double metabolism = cell.get_M();
-		bool is_alive = cell.alive();
+		bool is_alive = const_cast<cmdv::Compart &>(cell).alive();
 
-		ar	& boost::serialization::make_nvp("reps", cell.reps);
-		ar	//& BOOST_SERIALIZATION_NVP(cell.updateable)
-			& boost::serialization::make_nvp("alive", is_alive )
-			& boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA)
-			& boost::serialization::make_nvp("M", metabolism);
+		ar	<< boost::serialization::make_nvp("reps", cell.reps);
+		ar	<< boost::serialization::make_nvp("alive", is_alive )
+			<< boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA)
+			<< boost::serialization::make_nvp("M", metabolism);
 
+	}
+
+	template<class Archive>
+	void load(Archive & ar, cmdv::Compart & cell, unsigned int ver){
+		if(ver < 5) throw std::runtime_error("cmdv::Compart is out of date, can not load it.\n");
+		ar	>> boost::serialization::make_nvp("reps", cell.reps);
 	}
 
 	//CompartPool
@@ -45,25 +52,58 @@ namespace boost { namespace serialization {
 		 * */
 
 
-		ar	<< BOOST_SERIALIZATION_NVP(sim.size)
+		ar	<< boost::serialization::make_nvp("size", sim.size)
 			<< boost::serialization::make_nvp("time", sim.time);
 
 		//add comparts
 		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
 
-	//	ar	<< boost::serialization::make_nvp("reps", boost::serialization::make_array(sim.reps, sim.size*(par_splitfrom-1)+1));
+		ar	<< boost::serialization::make_nvp("no_last_splits", sim.no_last_splits);
+		ar	<< boost::serialization::make_nvp("no_last_replicates", sim.no_last_replicates);
+		ar	<< boost::serialization::make_nvp("no_last_deaths", sim.no_last_deaths);
+		ar	<< boost::serialization::make_nvp("savedir", sim.savedir);
 
-		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_splits);
-		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_replicates);
-		ar	<< BOOST_SERIALIZATION_NVP(sim.no_last_deaths);
-		ar	<< BOOST_SERIALIZATION_NVP(sim.savedir);
+		//save parameters
+		ar 	<< BOOST_SERIALIZATION_NVP(par_noEA)
+		 	<< BOOST_SERIALIZATION_NVP(par_quit)
+		 	<< BOOST_SERIALIZATION_NVP(par_maxtime)
+		 	<< BOOST_SERIALIZATION_NVP(par_poolsize)
+		 	<< BOOST_SERIALIZATION_NVP(par_output_interval)
+		 	<< BOOST_SERIALIZATION_NVP(par_save_interval)
+		 	<< BOOST_SERIALIZATION_NVP(par_claimNorep)
+		 	<< BOOST_SERIALIZATION_NVP(par_splitfrom)
+		 	<< BOOST_SERIALIZATION_NVP(par_num_input_content)
+		 	<< BOOST_SERIALIZATION_NVP(par_ID)
+		 	<< BOOST_SERIALIZATION_NVP(par_str_pool)
+		 	<< BOOST_SERIALIZATION_NVP(par_outdir)
+		 	<< BOOST_SERIALIZATION_NVP(par_output_filename)
+		 	<< BOOST_SERIALIZATION_NVP(par_savedir)
+		 	<< BOOST_SERIALIZATION_NVP(par_load)
+		 	<< BOOST_SERIALIZATION_NVP(par_seed_file)
+		 	<< BOOST_SERIALIZATION_NVP(par_bubbles)
+		 	<< BOOST_SERIALIZATION_NVP(par_init_grid)
+		 	<< BOOST_SERIALIZATION_NVP(par_ll)
+		 	<< BOOST_SERIALIZATION_NVP(par_sigma)
+		 	<< BOOST_SERIALIZATION_NVP(par_substitution)
+		 	<< BOOST_SERIALIZATION_NVP(par_insertion)
+		 	<< BOOST_SERIALIZATION_NVP(par_deletion)
+		 	<< BOOST_SERIALIZATION_NVP(par_g)
+		 	<< BOOST_SERIALIZATION_NVP(par_b1)
+		 	<< BOOST_SERIALIZATION_NVP(par_b2)
+		 	<< BOOST_SERIALIZATION_NVP(par_c)
+		 	<< BOOST_SERIALIZATION_NVP(par_Emin)
+		 	<< BOOST_SERIALIZATION_NVP(par_gc_bonus)
+		 	<< BOOST_SERIALIZATION_NVP(par_rangePdeg)
+		 	<< BOOST_SERIALIZATION_NVP(par_minPdeg)
+		 	<< BOOST_SERIALIZATION_NVP(par_flexPdeg);
+
 
 	}
 
 	template<class Archive>
 	void load(Archive & ar, cmdv::CompartPool & sim, unsigned int){
-		ar	>> BOOST_SERIALIZATION_NVP(sim.size)
-			>> BOOST_SERIALIZATION_NVP(sim.time);
+		ar	>> boost::serialization::make_nvp("size", sim.size)
+			>> boost::serialization::make_nvp("time", sim.time);
 
 		//add comparts
 		sim.comparts = new cmdv::Compart [sim.size];
@@ -72,19 +112,58 @@ namespace boost { namespace serialization {
 			comp->parent = &sim;
 		}
 
+		//load parameters
+		ar 	>> BOOST_SERIALIZATION_NVP(par_noEA)
+		 	>> BOOST_SERIALIZATION_NVP(par_quit)
+		 	>> BOOST_SERIALIZATION_NVP(par_maxtime)
+		 	>> BOOST_SERIALIZATION_NVP(par_poolsize)
+		 	>> BOOST_SERIALIZATION_NVP(par_output_interval)
+		 	>> BOOST_SERIALIZATION_NVP(par_save_interval)
+		 	>> BOOST_SERIALIZATION_NVP(par_claimNorep)
+		 	>> BOOST_SERIALIZATION_NVP(par_splitfrom)
+		 	>> BOOST_SERIALIZATION_NVP(par_num_input_content);
+
+		ar >> par_ID;
+		strcat(par_ID, "_cont\0");
+
+		ar 	>> BOOST_SERIALIZATION_NVP(par_str_pool)
+		 	>> BOOST_SERIALIZATION_NVP(par_outdir)
+		 	>> BOOST_SERIALIZATION_NVP(par_output_filename)
+		 	>> BOOST_SERIALIZATION_NVP(par_savedir)
+		 	>> BOOST_SERIALIZATION_NVP(par_load)
+		 	>> BOOST_SERIALIZATION_NVP(par_seed_file)
+		 	>> BOOST_SERIALIZATION_NVP(par_bubbles)
+		 	>> BOOST_SERIALIZATION_NVP(par_init_grid)
+		 	>> BOOST_SERIALIZATION_NVP(par_ll)
+		 	>> BOOST_SERIALIZATION_NVP(par_sigma)
+		 	>> BOOST_SERIALIZATION_NVP(par_substitution)
+		 	>> BOOST_SERIALIZATION_NVP(par_insertion)
+		 	>> BOOST_SERIALIZATION_NVP(par_deletion)
+		 	>> BOOST_SERIALIZATION_NVP(par_g)
+		 	>> BOOST_SERIALIZATION_NVP(par_b1)
+		 	>> BOOST_SERIALIZATION_NVP(par_b2)
+		 	>> BOOST_SERIALIZATION_NVP(par_c)
+		 	>> BOOST_SERIALIZATION_NVP(par_Emin)
+		 	>> BOOST_SERIALIZATION_NVP(par_gc_bonus)
+		 	>> BOOST_SERIALIZATION_NVP(par_rangePdeg)
+		 	>> BOOST_SERIALIZATION_NVP(par_minPdeg)
+		 	>> BOOST_SERIALIZATION_NVP(par_flexPdeg);
+
 	}
 
+	// replicators
+	
 	template<class Archive>
-	void save(Archive & ar, const cmdv::Compart::ScmRep & repl, unsigned int i){
-		save(ar, static_cast<const rnarep::CellContent&>(repl), i);
+	void save(Archive & ar, const cmdv::Compart::ScmRep * repl, unsigned int i){
+		save(ar, static_cast<const rnarep::CellContent&>(*repl), i);
 	}
 	
 }} //namespace boost::serialize
 
 //declare version
 BOOST_SERIALIZATION_SPLIT_FREE(cmdv::Compart::ScmRep)
-BOOST_CLASS_VERSION(cmdv::Compart, 4)
-BOOST_CLASS_VERSION(cmdv::CompartPool, 5)
+BOOST_CLASS_VERSION(cmdv::Compart, 5)
+BOOST_CLASS_VERSION(cmdv::CompartPool, 6)
 BOOST_CLASS_VERSION(cmdv::Compart::ScmRep, 3)
 
 #endif
