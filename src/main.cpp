@@ -22,10 +22,10 @@ int main(int argc, char *argv[]) {
 
 	//load if needed
 	if(std::strlen(par_load) > 0) {
-		automata.init_fromfile(par_load);
+		//automata.init_fromfile(par_load);
 
 		//Argoments - second read tru in case something addition specified besides load
-		Args(argc, argv)
+		Args(argc, argv);
 	}
 
 	//initialise rng

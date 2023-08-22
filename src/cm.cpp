@@ -358,6 +358,38 @@ namespace cmdv {
 //		std::cout << "Basic Constructor Called" << std::endl;
 	}
 
+
+	CompartPool::CompartPool(char *file):
+		degpool(0),
+		reppool(0)
+	{
+		// open file
+		std::ifstream in(file);
+		if(!in || !in.good())	throw std::runtime_error("ERROR: Could not open file to load content!\n");
+
+		// load content of file
+		boost::archive::xml_iarchive ia(in);
+		ia >> boost::serialization::make_nvp("mcrscm", *this);
+
+		// init broken sticks
+		degpool.reserve(size*(par_splitfrom-1)+2);
+		reppool.reserve(size*(par_splitfrom-1)+2);
+
+		degpool.push_back(1,nullptr); // first element is no_replicators-sum(Pdeg)
+		reppool.push_back(1, nullptr); // first element is no_replicators * Cnorep
+
+		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) {
+			if(!ptr->alive()) rep_stack.push_back(ptr);
+			degpool.push_back(0,ptr);
+			reppool.push_back(0,ptr);
+			ptr->setBindings(&reppool.back(), &degpool.back());
+			ptr->updateDeg();	
+		}
+		for(auto ptr = comparts, end = comparts + size; ptr != end; ++ptr){
+			*(comp)->refresh_M();
+		}
+	}
+
 	void CompartPool::init_fromfile(char *infile) {
 		std::string line, word;
 

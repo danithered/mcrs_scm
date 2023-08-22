@@ -82,10 +82,15 @@ namespace cmdv {
 
 			//Functions
 			//Compart base functions
+
+			//Constructor
 			Compart();
 
+			//Destructor
 			~Compart(){}
 
+			//Move constructor
+			Compart(Compart && origin);
 			///owerwrite one compart with other
 			//void operator =(Compart& origin);
 
@@ -151,6 +156,9 @@ namespace cmdv {
 			//Constructor 2 - for deserialisation
 			CompartPool():degpool(1), reppool(1) {}
 			
+			//Constructor 3
+			CompartPool(char *file);
+
 			//Destructor
 			~CompartPool();
 			

@@ -22,25 +22,6 @@ BOOST_SERIALIZATION_SPLIT_FREE(cmdv::Compart)
 //serialisers
 namespace boost { namespace serialization {
 
-	//Compart 
-	template<class Archive>
-	void save(Archive & ar, const cmdv::Compart & cell, unsigned int){
-		double metabolism = cell.get_M();
-		bool is_alive = const_cast<cmdv::Compart &>(cell).alive();
-
-		ar	<< boost::serialization::make_nvp("reps", cell.reps);
-		ar	<< boost::serialization::make_nvp("alive", is_alive )
-			<< boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA)
-			<< boost::serialization::make_nvp("M", metabolism);
-
-	}
-
-	template<class Archive>
-	void load(Archive & ar, cmdv::Compart & cell, unsigned int ver){
-		if(ver < 5) throw std::runtime_error("cmdv::Compart is out of date, can not load it.\n");
-		ar	>> boost::serialization::make_nvp("reps", cell.reps);
-	}
-
 	//CompartPool
 	template<class Archive>
 	void save(Archive & ar, const cmdv::CompartPool & sim, unsigned int){
@@ -50,18 +31,6 @@ namespace boost { namespace serialization {
 		 * also dont forget to update static no_alive!!!
 		 * rnarep::CellContetn::no_replicators also needs to be updated
 		 * */
-
-
-		ar	<< boost::serialization::make_nvp("size", sim.size)
-			<< boost::serialization::make_nvp("time", sim.time);
-
-		//add comparts
-		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
-
-		ar	<< boost::serialization::make_nvp("no_last_splits", sim.no_last_splits);
-		ar	<< boost::serialization::make_nvp("no_last_replicates", sim.no_last_replicates);
-		ar	<< boost::serialization::make_nvp("no_last_deaths", sim.no_last_deaths);
-		ar	<< boost::serialization::make_nvp("savedir", sim.savedir);
 
 		//save parameters
 		ar 	<< BOOST_SERIALIZATION_NVP(par_noEA)
@@ -97,21 +66,25 @@ namespace boost { namespace serialization {
 		 	<< BOOST_SERIALIZATION_NVP(par_minPdeg)
 		 	<< BOOST_SERIALIZATION_NVP(par_flexPdeg);
 
+		//save general properties
+		ar	<< boost::serialization::make_nvp("size", sim.size)
+			<< boost::serialization::make_nvp("time", sim.time);
+
+		//add comparts
+		ar	<< boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
+
+		//save counters
+		ar	<< boost::serialization::make_nvp("no_last_splits", sim.no_last_splits);
+		ar	<< boost::serialization::make_nvp("no_last_replicates", sim.no_last_replicates);
+		ar	<< boost::serialization::make_nvp("no_last_deaths", sim.no_last_deaths);
+		ar	<< boost::serialization::make_nvp("savedir", sim.savedir);
+
+
 
 	}
 
 	template<class Archive>
 	void load(Archive & ar, cmdv::CompartPool & sim, unsigned int){
-		ar	>> boost::serialization::make_nvp("size", sim.size)
-			>> boost::serialization::make_nvp("time", sim.time);
-
-		//add comparts
-		sim.comparts = new cmdv::Compart [sim.size];
-		ar	>> boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
-		for(cmdv::Compart *comp = sim.comparts, *endcomp = comp+sim.size; comp != endcomp; comp++){
-			comp->parent = &sim;
-		}
-
 		//load parameters
 		ar 	>> BOOST_SERIALIZATION_NVP(par_noEA)
 		 	>> BOOST_SERIALIZATION_NVP(par_quit)
@@ -123,7 +96,7 @@ namespace boost { namespace serialization {
 		 	>> BOOST_SERIALIZATION_NVP(par_splitfrom)
 		 	>> BOOST_SERIALIZATION_NVP(par_num_input_content);
 
-		ar >> par_ID;
+		ar	>> par_ID;
 		strcat(par_ID, "_cont\0");
 
 		ar 	>> BOOST_SERIALIZATION_NVP(par_str_pool)
@@ -149,6 +122,52 @@ namespace boost { namespace serialization {
 		 	>> BOOST_SERIALIZATION_NVP(par_minPdeg)
 		 	>> BOOST_SERIALIZATION_NVP(par_flexPdeg);
 
+		// general properties
+		ar	>> boost::serialization::make_nvp("size", sim.size)
+			>> boost::serialization::make_nvp("time", sim.time);
+
+		//reserve space for comparts
+		sim.comparts = new cmdv::Compart [sim.size];
+
+		//reserve space for replicators
+		replicators = new class Compart::ScmRep[sim.size*(par_splitfrom-1)+1];
+		
+		//add comparts
+		ar	>> boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
+		for(cmdv::Compart *comp = sim.comparts, *endcomp = comp+sim.size; comp != endcomp; comp++){
+			comp->parent = &sim;
+		}
+
+		//set counters
+		ar	>> boost::serialization::make_nvp("no_last_splits", sim.no_last_splits);
+		ar	>> boost::serialization::make_nvp("no_last_replicates", sim.no_last_replicates);
+		ar	>> boost::serialization::make_nvp("no_last_deaths", sim.no_last_deaths);
+
+	}
+
+	//Compart 
+	template<class Archive>
+	void save(Archive & ar, const cmdv::Compart & cell, unsigned int){
+		double metabolism = cell.get_M();
+		bool is_alive = const_cast<cmdv::Compart &>(cell).alive();
+
+		ar	<< boost::serialization::make_nvp("reps", cell.reps);
+		ar	<< boost::serialization::make_nvp("alive", is_alive )
+			<< boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA)
+			<< boost::serialization::make_nvp("M", metabolism);
+
+	}
+
+	template<class Archive>
+	void load(Archive & ar, cmdv::Compart & cell, unsigned int ver){
+		if(ver < 5) throw std::runtime_error("cmdv::Compart is out of date, can not load it.\n");
+
+		//need to save them to parent->replicators, but it is not set yet, then get a pointer an put it here. Do not forget to assign(Compart)
+		ar	>> boost::serialization::make_nvp("reps", );
+
+		bool is_alive;
+		ar	>> boost::serialization::make_nvp("alive", is_alive )
+			>> boost::serialization::make_nvp("reciproc_noEA", cell.reciproc_noEA);
 	}
 
 	// replicators

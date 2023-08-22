@@ -58,9 +58,10 @@ class reBrokenStick {
 	public:
 		//reBrokenStick(unsigned int _size);
 		reBrokenStick(unsigned int _size): used(0), tree(0){
-			init(_size);
+			if(_size) init(_size);
 		}
 
+		void reserve(unsigned int _size){init(_size);}
 
 		void push_back(float p, NodeVal val); 
 
