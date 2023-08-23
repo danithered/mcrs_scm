@@ -96,7 +96,7 @@ namespace boost { namespace serialization {
 		 	>> BOOST_SERIALIZATION_NVP(par_splitfrom)
 		 	>> BOOST_SERIALIZATION_NVP(par_num_input_content);
 
-		ar	>> par_ID;
+		ar	>> BOOST_SERIALIZATION_NVP(par_ID);
 		strcat(par_ID, "_cont\0");
 
 		ar 	>> BOOST_SERIALIZATION_NVP(par_str_pool)
@@ -127,16 +127,17 @@ namespace boost { namespace serialization {
 			>> boost::serialization::make_nvp("time", sim.time);
 
 		//reserve space for comparts
-		sim.comparts = new cmdv::Compart [sim.size];
+		sim.comparts = new cmdv::Compart* [sim.size];
+		for(cmdv::Compart **comp = sim.comparts, **endcomp = sim.comparts + sim.size; comp != endcomp; ++comp){
+			*comp = new class cmdv::Compart;
+			(*comp)->parent = &sim;
+		}
 
 		//reserve space for replicators
-		replicators = new class Compart::ScmRep[sim.size*(par_splitfrom-1)+1];
+		sim.replicators = new class cmdv::Compart::ScmRep[sim.size*(par_splitfrom-1)+1];
 		
 		//add comparts
 		ar	>> boost::serialization::make_nvp("cells", boost::serialization::make_array(sim.comparts, sim.size));
-		for(cmdv::Compart *comp = sim.comparts, *endcomp = comp+sim.size; comp != endcomp; comp++){
-			comp->parent = &sim;
-		}
 
 		//set counters
 		ar	>> boost::serialization::make_nvp("no_last_splits", sim.no_last_splits);
@@ -162,8 +163,13 @@ namespace boost { namespace serialization {
 	void load(Archive & ar, cmdv::Compart & cell, unsigned int ver){
 		if(ver < 5) throw std::runtime_error("cmdv::Compart is out of date, can not load it.\n");
 
-		//need to save them to parent->replicators, but it is not set yet, then get a pointer an put it here. Do not forget to assign(Compart)
-		ar	>> boost::serialization::make_nvp("reps", );
+		//need to save them to parent->replicators, then get a pointer an put it here. 
+		auto from = cell.parent->replicators + rnarep::CellContent::no_replicators;
+		ar	>> boost::serialization::make_nvp("reps", from);
+		for(auto end = cell.parent->replicators + rnarep::CellContent::no_replicators; from != end; ++from) {
+			cell.reps.insert(from);
+			from->assignCompart(&cell);
+		}
 
 		bool is_alive;
 		ar	>> boost::serialization::make_nvp("alive", is_alive )

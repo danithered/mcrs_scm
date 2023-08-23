@@ -379,14 +379,14 @@ namespace cmdv {
 		reppool.push_back(1, nullptr); // first element is no_replicators * Cnorep
 
 		for(Compart::ScmRep *ptr = replicators, *end = replicators + (size*(par_splitfrom-1) +1); ptr != end; ++ptr) {
-			if(!ptr->alive()) rep_stack.push_back(ptr);
+			if( ptr->empty ) rep_stack.push_back(ptr);
 			degpool.push_back(0,ptr);
 			reppool.push_back(0,ptr);
 			ptr->setBindings(&reppool.back(), &degpool.back());
 			ptr->updateDeg();	
 		}
-		for(auto ptr = comparts, end = comparts + size; ptr != end; ++ptr){
-			*(comp)->refresh_M();
+		for(auto comp = comparts, end = comparts + size; comp != end; ++comp){
+			(*comp)->refresh_M();
 		}
 	}
 

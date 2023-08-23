@@ -90,7 +90,7 @@ namespace cmdv {
 			~Compart(){}
 
 			//Move constructor
-			Compart(Compart && origin);
+			Compart(Compart && origin){std::cerr << "Undefined move constructor called" << std::endl;}
 			///owerwrite one compart with other
 			//void operator =(Compart& origin);
 
