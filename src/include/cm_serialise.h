@@ -129,7 +129,7 @@ namespace boost { namespace serialization {
 		//reserve space for comparts
 		sim.comparts = new cmdv::Compart* [sim.size];
 		for(cmdv::Compart **comp = sim.comparts, **endcomp = sim.comparts + sim.size; comp != endcomp; ++comp){
-			*comp = new class cmdv::Compart;
+			*comp = new cmdv::Compart;
 			(*comp)->parent = &sim;
 		}
 
