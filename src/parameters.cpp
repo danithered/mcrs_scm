@@ -32,6 +32,7 @@ using namespace std;
 				char par_savedir[255] = "SAVE"; //
 				char par_load[255] = "\0"; // initial state
 				char par_bubbles[255] = "\0";
+				char par_str_pool_copy[255] = "used_strs.txt"; // single file containing decription of enzymatic activities
 
 //mutation rates
 				double par_substitution = 0.005; //

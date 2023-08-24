@@ -144,6 +144,7 @@ namespace cmdv {
 			//unsigned int no_reps_last_in_alive; // to store the number of replicators in alive vesicules in previous generation
 			
 			std::string savedir;
+			std::filesystem::path outpath;
 
 			//OUTPUTS
 			std::ofstream output;

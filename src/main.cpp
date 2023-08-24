@@ -20,12 +20,16 @@ int main(int argc, char *argv[]) {
 		return(-1);
 	}
 
-	//load if needed
+	// init automata
+	std::unique_ptr<cmdv::CompartPool> automata;
 	if(std::strlen(par_load) > 0) {
-		//automata.init_fromfile(par_load);
+//		automata = std::make_unique<cmdv::CompartPool>(par_poolsize); //initialise automata
+		automata = std::make_unique<cmdv::CompartPool>(par_load); //initialise automata
 
 		//Argoments - second read tru in case something addition specified besides load
 		Args(argc, argv);
+	} else {
+		automata = std::make_unique<cmdv::CompartPool>(par_poolsize); //initialise automata
 	}
 
 	//initialise rng
@@ -43,19 +47,12 @@ int main(int argc, char *argv[]) {
 	//report init
 	cout << "Starting to init simulation " << par_ID << " at " << ctime(&timer); 
 
-	//start to do stuff
+	// load additional files
 	cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
-
-	cmdv::CompartPool automata(par_poolsize); //initialise automata
-
-	//automata.neighInic(MARGOLUS_NEIGH, cadv::torus, 0); //init diffusional neighbourhood for Toffoli-Margoulus algorithm
-	//automata.neighInic(par_Nmet, cadv::torus, 1); //init metabolic neighbourhood 
-	//automata.neighInic(par_Nrep, cadv::torus, 2); //init replication neighbourhood
-
-	if(std::strlen(par_bubbles) > 0) automata.discoverComparts(par_bubbles);
+	if(std::strlen(par_bubbles) > 0) automata->discoverComparts(par_bubbles);
 
 	//open output
-	if(automata.openOutputs()) { //returns not 0 if fails
+	if(automata->openOutputs()) { //returns not 0 if fails
 		gsl_rng_free(r);
 
 		//report closing
@@ -66,12 +63,12 @@ int main(int argc, char *argv[]) {
 	}
 	
 	//save parameters
-	std::string paramfilename(automata.savedir.c_str());
+	std::string paramfilename(automata->savedir.c_str());
 	paramfilename += "/parameters.txt";
 	paramsToFile(paramfilename.c_str());
 
 	//Running simulation
-	int endstate = automata.cUpdate(par_maxtime);
+	int endstate = automata->cUpdate(par_maxtime);
 
 	//close rng
 	gsl_rng_free(r);

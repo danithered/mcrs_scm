@@ -84,6 +84,12 @@ namespace dv_annot{
 	}
 
 	//Functions for PatternPool
+	void PatternPool::readFile(char *filename, char *copy){
+		PatternPool::readFile(filename);
+		if(std::strlen(copy)){
+			std::filesystem::copy(filename, copy);
+		}
+	}
 	void PatternPool::readFile(char *filename){
 		int no = 0; 
 		int min = 0; //number of ea, subrules

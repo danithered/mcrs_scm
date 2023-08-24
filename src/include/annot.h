@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <filesystem>
 
 #include "parameters.h"
 #include "dv_tools.h"
@@ -181,6 +182,7 @@ namespace dv_annot{
 
 			//file input
 			void readFile(char *filename);
+			void readFile(char *filename, char *copy);
 			
 			//clearing activities
 			//void clear();
