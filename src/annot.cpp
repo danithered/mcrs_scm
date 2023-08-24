@@ -84,7 +84,7 @@ namespace dv_annot{
 	}
 
 	//Functions for PatternPool
-	void PatternPool::readFile(char *filename, char *copy){
+	void PatternPool::readFile(char *filename, const char *copy){
 		PatternPool::readFile(filename);
 		if(std::strlen(copy)){
 			std::filesystem::copy(filename, copy);

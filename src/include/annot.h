@@ -182,7 +182,7 @@ namespace dv_annot{
 
 			//file input
 			void readFile(char *filename);
-			void readFile(char *filename, char *copy);
+			void readFile(char *filename, const char *copy);
 			
 			//clearing activities
 			//void clear();
