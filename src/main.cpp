@@ -47,15 +47,6 @@ int main(int argc, char *argv[]) {
 	//report init
 	cout << "Starting to init simulation " << par_ID << " at " << ctime(&timer); 
 
-	// load additional files
-	if(std::strlen(par_str_pool_copy)){
-		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool, (automata->outpath / par_str_pool_copy).c_str() ); //read in pattern file and save it
-	} else {
-		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
-	}
-
-	if(std::strlen(par_bubbles) > 0) automata->discoverComparts(par_bubbles);
-
 	//open output
 	if(automata->openOutputs()) { //returns not 0 if fails
 		gsl_rng_free(r);
@@ -66,6 +57,16 @@ int main(int argc, char *argv[]) {
 
 		return -2;
 	}
+
+	// load additional files
+	if(std::strlen(par_str_pool_copy)){
+		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool, (automata->outpath / par_str_pool_copy).c_str() ); //read in pattern file and save it
+	} else {
+		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
+	}
+
+	if(std::strlen(par_bubbles) > 0) automata->discoverComparts(par_bubbles);
+
 	
 	//save parameters
 	std::string paramfilename(automata->savedir.c_str());

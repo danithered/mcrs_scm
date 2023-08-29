@@ -32,6 +32,12 @@ namespace boost { namespace serialization {
 		 * rnarep::CellContetn::no_replicators also needs to be updated
 		 * */
 
+		std::string ID(par_ID), str_pool(par_str_pool), outdir(par_outdir), output_filename(par_output_filename);
+		std::string savedir(par_savedir) ;
+		std::string load(par_load) ;
+		std::string seed_file(par_seed_file) ;
+		std::string bubbles(par_bubbles) ;
+
 		//save parameters
 		ar 	<< BOOST_SERIALIZATION_NVP(par_noEA)
 		 	<< BOOST_SERIALIZATION_NVP(par_quit)
@@ -42,14 +48,14 @@ namespace boost { namespace serialization {
 		 	<< BOOST_SERIALIZATION_NVP(par_claimNorep)
 		 	<< BOOST_SERIALIZATION_NVP(par_splitfrom)
 		 	<< BOOST_SERIALIZATION_NVP(par_num_input_content)
-		 	<< BOOST_SERIALIZATION_NVP(par_ID)
-		 	<< BOOST_SERIALIZATION_NVP(par_str_pool)
-		 	<< BOOST_SERIALIZATION_NVP(par_outdir)
-		 	<< BOOST_SERIALIZATION_NVP(par_output_filename)
-		 	<< BOOST_SERIALIZATION_NVP(par_savedir)
-		 	<< BOOST_SERIALIZATION_NVP(par_load)
-		 	<< BOOST_SERIALIZATION_NVP(par_seed_file)
-		 	<< BOOST_SERIALIZATION_NVP(par_bubbles)
+		 	<< boost::serialization::make_nvp("par_ID", ID)
+		 	<< boost::serialization::make_nvp("par_str_pool", str_pool)
+		 	<< boost::serialization::make_nvp("par_outdir", outdir)
+		 	<< boost::serialization::make_nvp("par_output_filename", output_filename)
+		 	<< boost::serialization::make_nvp("par_savedir", savedir)
+		 	<< boost::serialization::make_nvp("par_load", load)
+		 	<< boost::serialization::make_nvp("par_seed_file", seed_file)
+		 	<< boost::serialization::make_nvp("par_bubbles", bubbles)
 		 	<< BOOST_SERIALIZATION_NVP(par_init_grid)
 		 	<< BOOST_SERIALIZATION_NVP(par_ll)
 		 	<< BOOST_SERIALIZATION_NVP(par_sigma)
@@ -85,6 +91,7 @@ namespace boost { namespace serialization {
 
 	template<class Archive>
 	void load(Archive & ar, cmdv::CompartPool & sim, unsigned int){
+
 		//load parameters
 		ar 	>> BOOST_SERIALIZATION_NVP(par_noEA)
 		 	>> BOOST_SERIALIZATION_NVP(par_quit)
@@ -96,17 +103,56 @@ namespace boost { namespace serialization {
 		 	>> BOOST_SERIALIZATION_NVP(par_splitfrom)
 		 	>> BOOST_SERIALIZATION_NVP(par_num_input_content);
 
-		ar	>> BOOST_SERIALIZATION_NVP(par_ID);
+		{
+		std::string ID;
+		ar	>> boost::serialization::make_nvp("par_ID", ID);
+		strcpy(par_ID, ID.c_str());
 		strcat(par_ID, "_cont\0");
+		}
 
-		ar 	>> BOOST_SERIALIZATION_NVP(par_str_pool)
-		 	>> BOOST_SERIALIZATION_NVP(par_outdir)
-		 	>> BOOST_SERIALIZATION_NVP(par_output_filename)
-		 	>> BOOST_SERIALIZATION_NVP(par_savedir)
-		 	>> BOOST_SERIALIZATION_NVP(par_load)
-		 	>> BOOST_SERIALIZATION_NVP(par_seed_file)
-		 	>> BOOST_SERIALIZATION_NVP(par_bubbles)
-		 	>> BOOST_SERIALIZATION_NVP(par_init_grid)
+		{
+		std::string str_pool;
+		ar	>> boost::serialization::make_nvp("par_str_pool", str_pool);
+		strcpy(par_str_pool, str_pool.c_str());
+		}
+
+		{
+		std::string outdir;
+		ar	>> boost::serialization::make_nvp("par_outdir", outdir);
+		strcpy(par_outdir, outdir.c_str());
+		}
+
+		{
+		std::string output_filename;
+		ar	>> boost::serialization::make_nvp("par_output_filename", output_filename);
+		strcpy(par_output_filename, output_filename.c_str());
+		}
+
+		{
+		std::string savedir;
+		ar	>> boost::serialization::make_nvp("par_savedir", savedir);
+		strcpy(par_savedir, savedir.c_str());
+		}
+
+		{
+		std::string load;
+		ar	>> boost::serialization::make_nvp("par_load", load);
+		strcpy(par_load, load.c_str());
+		}
+
+		{
+		std::string seed_file;
+		ar	>> boost::serialization::make_nvp("par_seed_file", seed_file);
+		strcpy(par_seed_file, seed_file.c_str());
+		}
+
+		{
+		std::string bubbles;
+		ar	>> boost::serialization::make_nvp("par_bubbles", bubbles);
+		strcpy(par_bubbles, bubbles.c_str());
+		}
+
+		ar  	>> BOOST_SERIALIZATION_NVP(par_init_grid)
 		 	>> BOOST_SERIALIZATION_NVP(par_ll)
 		 	>> BOOST_SERIALIZATION_NVP(par_sigma)
 		 	>> BOOST_SERIALIZATION_NVP(par_substitution)
