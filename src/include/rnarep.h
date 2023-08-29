@@ -66,7 +66,7 @@ namespace rnarep {
 				//std::memset(seq, '\0', MAXLEN);
 
 				//add random values for seq
-				if(gsl_rng_uniform(r) < par_init_grid) {
+				if(par_init_grid && gsl_rng_uniform(r) < par_init_grid) {
 					len = gsl_rng_uniform_int(r, 10) + 1; //initiate with n bases, n is [1,10] equal distribution
 					for(int b=0; b < len; b++){
 						seq.push_back( rnarep::bases[gsl_rng_uniform_int(r,4)] );
