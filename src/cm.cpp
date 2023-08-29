@@ -684,6 +684,11 @@ namespace cmdv {
 		savedir = outpath / par_savedir;
 		std::filesystem::create_directories(savedir);
 		
+		//save strpool
+		if(std::strlen(par_str_pool_copy)){
+			std::filesystem::copy(par_str_pool, outpath / par_str_pool_copy);
+		}
+		
 		return 0;
 	}
 

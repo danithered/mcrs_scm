@@ -21,6 +21,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	// init automata
+	cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
+
 	std::unique_ptr<cmdv::CompartPool> automata;
 	if(std::strlen(par_load) > 0) {
 //		automata = std::make_unique<cmdv::CompartPool>(par_poolsize); //initialise automata
@@ -44,6 +46,9 @@ int main(int argc, char *argv[]) {
 		else randomszam_inic(par_seed, r); // init with exact seed
 	}
 
+	// load additional files
+	if(std::strlen(par_bubbles) > 0) automata->discoverComparts(par_bubbles);
+
 	//report init
 	cout << "Starting to init simulation " << par_ID << " at " << ctime(&timer); 
 
@@ -58,16 +63,6 @@ int main(int argc, char *argv[]) {
 		return -2;
 	}
 
-	// load additional files
-	if(std::strlen(par_str_pool_copy)){
-		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool, (automata->outpath / par_str_pool_copy).c_str() ); //read in pattern file and save it
-	} else {
-		cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
-	}
-
-	if(std::strlen(par_bubbles) > 0) automata->discoverComparts(par_bubbles);
-
-	
 	//save parameters
 	std::string paramfilename(automata->savedir.c_str());
 	paramfilename += "/parameters.txt";
