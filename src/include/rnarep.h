@@ -121,12 +121,14 @@ namespace rnarep {
 
 				//check if new seq is ok
 				for(auto & letter : templ) if(letter != 'A' && letter != 'U' && letter != 'G' && letter != 'C' && letter != 'a' && letter != 'u' && letter != 'g' && letter != 'c'){
-					if( (templ != "N") && (templ != "0") ) std::cerr 
+					if( (templ != "N") && (templ != "0") ) {
+						std::cerr 
 						<< "WARNING: rnarep::CellContent::operator = (string): Invalid character (" << letter 
 						<< ") found in input sequence " << templ
 						<< ". Empty string will be used intead." << std::endl;
-					templ.clear();
-					break;
+						templ.clear();
+						break;
+					}
 				}
 				if(templ.length() ){ //length is not zero
 					seq = templ;
