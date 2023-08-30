@@ -21,16 +21,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	// init automata
-	cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file
-
+	cmdv::Compart::ScmRep::patterns.readFile(par_str_pool); //read in pattern file - it has to be init before automata
 	std::unique_ptr<cmdv::CompartPool> automata;
-	if(std::strlen(par_load) > 0) {
-//		automata = std::make_unique<cmdv::CompartPool>(par_poolsize); //initialise automata
+	if(std::strlen(par_load) > 0) { // loading from file - in this case par_str_pool has to be called also!!
 		automata = std::make_unique<cmdv::CompartPool>(par_load); //initialise automata
-
-		//Argoments - second read tru in case something addition specified besides load
-		Args(argc, argv);
-	} else {
+		Args(argc, argv); //Argoments - second read tru in case something addition specified besides load
+	} else { // initialise for first time
 		automata = std::make_unique<cmdv::CompartPool>(par_poolsize); //initialise automata
 	}
 

@@ -36,6 +36,7 @@ int randomszam_olvasas(const char * filename, gsl_rng * rng){
 			return 1;
 		}
 		
+		if(r == NULL) r = (gsl_rng *) gsl_rng_alloc (gsl_rng_mt19937);
 		if(gsl_rng_fread (input, r)) {
 			fclose(input);
 			return(2);
