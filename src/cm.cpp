@@ -486,7 +486,7 @@ namespace cmdv {
 		}
 
 		int mtime = 0;
-		unsigned int periodlength = par_poolsize * (par_splitfrom - 1) / 2;
+		periodlength = par_poolsize * (par_splitfrom - 1) / 2;
 		for(mtime = time + gens; time < mtime; time++){ //updating generations
 			autoCompartInput();
 
@@ -506,7 +506,10 @@ namespace cmdv {
 				// degrade
 				degpool[0].update(rnarep::CellContent::no_replicators -  degpool.cumsum() + degpool[0].get_p() ); // the claim of not happening degradation is no_replicators - sum(Pdeg[1-N])
 				target = degpool.draw(gsl_rng_uniform(r));
-				if(target != nullptr) target->degradets();	
+				if(target != nullptr) {
+					target->degradets();
+					++no_last_deaths;
+				}
 			}
 
 			// quit conditions
@@ -671,7 +674,7 @@ namespace cmdv {
 			output << ";no_A" << a ;
 		}
 
-		output << ";percent_replicated;percent_died" << std::endl;
+		output << ";no_replicated;no_died" << std::endl;
 
 		output.flush();
 
@@ -707,6 +710,7 @@ namespace cmdv {
 		//clearing
 		out_spec.assign(par_noEA, Outdata());
 		out_gen.assign(par_noEA, Outdata());
+		out_noA.assign(par_noEA + 1, 0);
 		out_par = Outdata();
 		out_templ = Outdata();
 
@@ -817,7 +821,7 @@ namespace cmdv {
 			output << ';' << out_noA[ea] ;
 		}
 
-		output << ';' << static_cast<double>(no_last_replicates) << ';' << static_cast<double>(no_last_deaths)/no_reps_last << std::endl;
+		output << ';' << no_last_replicates << ';' << no_last_deaths << std::endl;
 
 		output.flush();
 

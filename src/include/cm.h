@@ -232,6 +232,7 @@ namespace cmdv {
 			unsigned int no_reps_last; // to store the number of replicators in previous generation
 
 			bool testQuit() const; 
+			unsigned int periodlength;
 	};
 	
 }
